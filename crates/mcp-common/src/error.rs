@@ -3,85 +3,85 @@ use std::fmt;
 use serde_json::Value;
 use tracing::{debug, error};
 
-/// MCPセキュリティゲートウェイで使用される共通エラー型
+/// Common error type used in MCP Security Gateway
 #[derive(Error, Debug)]
 pub enum McpError {
-    /// 認証や認可に関するエラー
-    #[error("認証エラー: {0}")]
+    /// Authentication and authorization errors
+    #[error("Authentication error: {0}")]
     Auth(String),
 
-    /// 無効なリクエストや入力に関するエラー
-    #[error("無効なリクエスト: {0}")]
+    /// Invalid request or input errors
+    #[error("Invalid request: {0}")]
     InvalidRequest(String),
 
-    /// リソースが見つからない場合のエラー
-    #[error("リソースが見つかりません: {0}")]
+    /// Resource not found errors
+    #[error("Resource not found: {0}")]
     NotFound(String),
 
-    /// ポリシー評価に関するエラー
-    #[error("ポリシー違反: {0}")]
+    /// Policy evaluation errors
+    #[error("Policy violation: {0}")]
     PolicyViolation(String),
 
-    /// サンドボックス実行に関するエラー
-    #[error("サンドボックスエラー: {0}")]
+    /// Sandbox execution errors
+    #[error("Sandbox error: {0}")]
     Sandbox(String),
 
-    /// コマンド実行に関するエラー
-    #[error("実行エラー: {0}")]
+    /// Command execution errors
+    #[error("Execution error: {0}")]
     Execution(String),
 
-    /// 内部的なエラー
-    #[error("内部エラー: {0}")]
+    /// Internal errors
+    #[error("Internal error: {0}")]
     Internal(String),
 
-    /// 一時的なエラー（再試行可能）
-    #[error("一時的なエラー: {0}")]
+    /// Temporary errors (retryable)
+    #[error("Temporary error: {0}")]
     Temporary(String),
 
-    /// 外部サービスとの通信エラー
-    #[error("外部サービスエラー: {0}")]
+    /// External service communication errors
+    #[error("External service error: {0}")]
     ExternalService(String),
 }
 
-/// エラーコード範囲の定義
+/// Error code range definitions
 pub mod error_code {
-    // 認証エラー (1000-1999)
+    // Authentication errors (1000-1999)
     pub const AUTH_INVALID_CREDENTIALS: u32 = 1001;
     pub const AUTH_EXPIRED_TOKEN: u32 = 1002;
     pub const AUTH_INSUFFICIENT_PERMISSIONS: u32 = 1003;
 
-    // 入力検証エラー (2000-2999)
+    // Input validation errors (2000-2999)
     pub const INPUT_INVALID_PARAMETER: u32 = 2001;
     pub const INPUT_MISSING_REQUIRED: u32 = 2002;
     pub const INPUT_INVALID_FORMAT: u32 = 2003;
 
-    // ポリシーエラー (3000-3999)
+    // Policy errors (3000-3999)
     pub const POLICY_COMMAND_NOT_ALLOWED: u32 = 3001;
     pub const POLICY_NETWORK_ACCESS_DENIED: u32 = 3002;
     pub const POLICY_FILE_ACCESS_DENIED: u32 = 3003;
     pub const POLICY_RESOURCE_LIMIT_EXCEEDED: u32 = 3004;
 
-    // サンドボックスエラー (4000-4999)
+    // Sandbox errors (4000-4999)
     pub const SANDBOX_SETUP_FAILED: u32 = 4001;
     pub const SANDBOX_EXECUTION_FAILED: u32 = 4002;
     pub const SANDBOX_RESOURCE_LIMIT_EXCEEDED: u32 = 4003;
 
-    // 内部エラー (5000-5999)
+    // Internal errors (5000-5999)
     pub const INTERNAL_UNEXPECTED: u32 = 5001;
     pub const INTERNAL_DATABASE_ERROR: u32 = 5002;
     pub const INTERNAL_DEPENDENCY_FAILED: u32 = 5003;
 
-    // 新しいエラーコード
+    // New error codes
     pub const RESOURCE_NOT_FOUND: u32 = 6001;
 }
 
-/// エラー応答の標準形式
+/// Standard error response format
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct ErrorResponse {
     pub error: ErrorDetail,
 }
 
-/// エラー詳細
+/// Error details
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct ErrorDetail {
     pub code: u32,
@@ -90,7 +90,7 @@ pub struct ErrorDetail {
     pub details: Option<Value>,
 }
 
-/// Result<T, E> からResult<T, McpError>への変換マクロ
+/// Macro to convert Result<T, E> to Result<T, McpError>
 /// 
 /// # Examples
 /// 
@@ -99,9 +99,9 @@ pub struct ErrorDetail {
 /// use std::fs::File;
 /// 
 /// fn read_config() -> mcp_common::error::McpResult<String> {
-///     let file = to_mcp_result!(File::open("config.json"), "設定ファイルが開けません");
-///     // 以降の処理...
-///     Ok("設定内容".to_string())
+///     let file = to_mcp_result!(File::open("config.json"), "Cannot open config file");
+///     // Further processing...
+///     Ok("Configuration content".to_string())
 /// }
 /// ```
 #[macro_export]
@@ -125,7 +125,7 @@ macro_rules! to_mcp_result {
 }
 
 impl McpError {
-    /// エラーコードを取得
+    /// Get error code
     pub fn code(&self) -> u32 {
         match self {
             McpError::Auth(msg) if msg.contains("invalid") => error_code::AUTH_INVALID_CREDENTIALS,
@@ -159,7 +159,7 @@ impl McpError {
         }
     }
 
-    /// エラー応答を生成
+    /// Generate error response
     pub fn to_response(&self) -> ErrorResponse {
         ErrorResponse {
             error: ErrorDetail {
@@ -170,7 +170,7 @@ impl McpError {
         }
     }
 
-    /// 詳細情報付きのエラー応答を生成
+    /// Generate error response with details
     pub fn with_details(&self, details: Value) -> ErrorResponse {
         ErrorResponse {
             error: ErrorDetail {
@@ -181,12 +181,12 @@ impl McpError {
         }
     }
     
-    /// カスタムコード付きのポリシー違反エラーを生成
+    /// Create policy violation error with custom code
     pub fn policy_violation(message: impl Into<String>, _code: u32, details: Option<Value>) -> Self {
-        // 基本的なエラーを作成
+        // Create basic error
         let error = McpError::PolicyViolation(message.into());
         
-        // 詳細情報をログに記録
+        // Log details
         if let Some(details_json) = &details {
             debug!("Policy violation details: {}", details_json);
         }
@@ -194,12 +194,12 @@ impl McpError {
         error
     }
     
-    /// カスタムコード付きのサンドボックスエラーを生成
+    /// Create sandbox error with custom code
     pub fn sandbox_error(message: impl Into<String>, _code: u32, details: Option<Value>) -> Self {
-        // 基本的なエラーを作成
+        // Create basic error
         let error = McpError::Sandbox(message.into());
         
-        // 詳細情報をログに記録
+        // Log details
         if let Some(details_json) = &details {
             debug!("Sandbox error details: {}", details_json);
         }
@@ -207,50 +207,50 @@ impl McpError {
         error
     }
     
-    /// その他のMcpErrorからエラー応答を作成する補助関数
+    /// Helper function to create error response from other McpError
     pub fn from_error<E: fmt::Display>(err: E, _code: u32) -> Self {
         McpError::Internal(format!("{}", err))
     }
 }
 
-/// Result型のエイリアス
+/// Result type alias
 pub type McpResult<T> = std::result::Result<T, McpError>;
 
-// standardエラーからMcpErrorへの変換実装
+// Conversion implementation from standard errors to McpError
 impl From<std::io::Error> for McpError {
     fn from(err: std::io::Error) -> Self {
         match err.kind() {
-            std::io::ErrorKind::NotFound => McpError::NotFound(format!("ファイルが見つかりません: {}", err)),
-            std::io::ErrorKind::PermissionDenied => McpError::PolicyViolation(format!("アクセス権限がありません: {}", err)),
-            std::io::ErrorKind::ConnectionRefused => McpError::ExternalService(format!("接続が拒否されました: {}", err)),
-            std::io::ErrorKind::ConnectionReset => McpError::Temporary(format!("接続がリセットされました: {}", err)),
-            std::io::ErrorKind::ConnectionAborted => McpError::Temporary(format!("接続が中断されました: {}", err)),
-            std::io::ErrorKind::NotConnected => McpError::ExternalService(format!("接続されていません: {}", err)),
-            std::io::ErrorKind::TimedOut => McpError::Execution(format!("タイムアウトしました: {}", err)),
-            _ => McpError::Internal(format!("I/Oエラー: {}", err)),
+            std::io::ErrorKind::NotFound => McpError::NotFound(format!("File not found: {}", err)),
+            std::io::ErrorKind::PermissionDenied => McpError::PolicyViolation(format!("Permission denied: {}", err)),
+            std::io::ErrorKind::ConnectionRefused => McpError::ExternalService(format!("Connection refused: {}", err)),
+            std::io::ErrorKind::ConnectionReset => McpError::Temporary(format!("Connection reset: {}", err)),
+            std::io::ErrorKind::ConnectionAborted => McpError::Temporary(format!("Connection aborted: {}", err)),
+            std::io::ErrorKind::NotConnected => McpError::ExternalService(format!("Not connected: {}", err)),
+            std::io::ErrorKind::TimedOut => McpError::Execution(format!("Timed out: {}", err)),
+            _ => McpError::Internal(format!("I/O error: {}", err)),
         }
     }
 }
 
 impl From<serde_json::Error> for McpError {
     fn from(err: serde_json::Error) -> Self {
-        McpError::InvalidRequest(format!("JSONパースエラー: {}", err))
+        McpError::InvalidRequest(format!("JSON parsing error: {}", err))
     }
 }
 
 impl From<std::str::Utf8Error> for McpError {
     fn from(err: std::str::Utf8Error) -> Self {
-        McpError::InvalidRequest(format!("不正なUTF-8シーケンス: {}", err))
+        McpError::InvalidRequest(format!("Invalid UTF-8 sequence: {}", err))
     }
 }
 
 impl From<std::string::FromUtf8Error> for McpError {
     fn from(err: std::string::FromUtf8Error) -> Self {
-        McpError::InvalidRequest(format!("不正なUTF-8シーケンス: {}", err))
+        McpError::InvalidRequest(format!("Invalid UTF-8 sequence: {}", err))
     }
 }
 
-/// トレース可能なエラーのラッパー
+/// Wrapper for traceable errors
 #[macro_export]
 macro_rules! trace_err {
     ($expr:expr, $level:ident, $msg:expr) => {
@@ -264,7 +264,7 @@ macro_rules! trace_err {
     };
 }
 
-/// 早期リターン付きエラートレース
+/// Error trace with early return
 #[macro_export]
 macro_rules! try_trace {
     ($expr:expr, $level:ident, $msg:expr) => {
@@ -278,12 +278,12 @@ macro_rules! try_trace {
     };
 }
 
-/// 汎用的なResultをMcpResultに変換するヘルパー
+/// Helper to convert generic Result to McpResult
 pub trait IntoMcpResult<T, E> {
-    /// Result<T, E>をMcpResult<T>に変換
+    /// Convert Result<T, E> to McpResult<T>
     fn into_mcp_result(self) -> McpResult<T>;
     
-    /// Result<T, E>をMcpResult<T>に変換し、カスタムメッセージを付ける
+    /// Convert Result<T, E> to McpResult<T> with custom message
     fn into_mcp_result_with_msg(self, msg: impl Into<String>) -> McpResult<T>;
 }
 
@@ -297,18 +297,18 @@ impl<T, E: std::fmt::Display> IntoMcpResult<T, E> for Result<T, E> {
     }
 }
 
-/// 様々なエラーをMcpErrorに変換するための変換トレイト
+/// Conversion trait for converting various errors to McpError
 pub trait ToMcpError {
-    /// McpErrorに変換
+    /// Convert to McpError
     fn to_mcp_error(self) -> McpError;
     
-    /// カスタムメッセージつきでMcpErrorに変換
+    /// Convert to McpError with custom message
     fn to_mcp_error_with_msg(self, msg: impl Into<String>) -> McpError;
 }
 
-// ToMcpErrorの汎用実装（From<E>トレイトを実装している型のみに適用）
-// 警告: この実装はmcp-errorのToMcpError自体には適用されません
-// これにより、競合を避けつつ必要な変換を提供します
+// Generic implementation of ToMcpError (applies only to types that implement From<E>)
+// Note: This implementation doesn't apply to mcp-error's ToMcpError itself
+// This provides necessary conversions while avoiding conflicts
 impl<E> ToMcpError for E 
 where 
     E: std::fmt::Display,
@@ -343,7 +343,7 @@ mod tests {
     #[test]
     fn test_result_into_mcp_result() {
         let ok_result: Result<i32, &str> = Ok(42);
-        let err_result: Result<i32, &str> = Err("エラー発生");
+        let err_result: Result<i32, &str> = Err("Error occurred");
         
         assert_eq!(ok_result.into_mcp_result().unwrap(), 42);
         assert!(matches!(err_result.into_mcp_result(), Err(McpError::Internal(_))));
@@ -351,8 +351,8 @@ mod tests {
     
     #[test]
     fn test_io_error_conversion() {
-        let not_found = std::io::Error::new(std::io::ErrorKind::NotFound, "ファイルなし");
-        let perm_denied = std::io::Error::new(std::io::ErrorKind::PermissionDenied, "権限エラー");
+        let not_found = std::io::Error::new(std::io::ErrorKind::NotFound, "File not found");
+        let perm_denied = std::io::Error::new(std::io::ErrorKind::PermissionDenied, "Permission error");
         
         assert!(matches!(not_found.to_mcp_error(), McpError::NotFound(_)));
         assert!(matches!(perm_denied.to_mcp_error(), McpError::PolicyViolation(_)));

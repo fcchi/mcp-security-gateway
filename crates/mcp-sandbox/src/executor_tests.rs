@@ -4,22 +4,22 @@ mod tests {
     use crate::models::SandboxConfig;
     use std::collections::HashMap;
 
-    // CommandExecutor::new のテスト
+    // Test for CommandExecutor::new
     #[test]
     fn test_new() {
-        // デフォルトの設定で作成
+        // Create with default settings
         let _executor = CommandExecutor::new();
     }
 
-    // CommandExecutor::with_config のテスト
+    // Test for CommandExecutor::with_config
     #[test]
     fn test_with_config() {
-        // サンドボックス設定でインスタンス作成
+        // Create instance with sandbox configuration
         let sandbox_config = SandboxConfig::default();
         let _executor = CommandExecutor::with_config(60, sandbox_config.clone());
     }
 
-    // 有効なコマンドの実行テスト
+    // Test for executing a valid command
     #[tokio::test]
     async fn test_execute_valid_command() {
         let executor = CommandExecutor::new();
@@ -43,7 +43,7 @@ mod tests {
         assert!(output.stderr.is_empty());
     }
     
-    // 存在しないコマンドの実行テスト
+    // Test for executing a non-existent command
     #[tokio::test]
     async fn test_execute_invalid_command() {
         let executor = CommandExecutor::new();
@@ -57,7 +57,7 @@ mod tests {
         assert!(result.is_err());
     }
     
-    // 環境変数を使用するコマンドのテスト
+    // Test for command execution with environment variables
     #[tokio::test]
     async fn test_execute_with_env_vars() {
         let executor = CommandExecutor::new();
@@ -82,7 +82,7 @@ mod tests {
         assert!(output.stdout.trim() == "test_value");
     }
     
-    // 作業ディレクトリを指定するテスト
+    // Test for command execution with working directory
     #[tokio::test]
     async fn test_execute_with_cwd() {
         let executor = CommandExecutor::new();
@@ -116,19 +116,19 @@ mod tests {
         assert!(output.stdout.trim() == "/tmp");
     }
     
-    // with_sandbox_configメソッドのテスト
+    // Test for with_sandbox_config method
     #[test]
     fn test_with_sandbox_config() {
-        // 既存のインスタンスから新しいサンドボックス設定で新しいインスタンスを作成
+        // Create a new instance with new sandbox settings from an existing instance
         let executor = CommandExecutor::new();
         let config = SandboxConfig::default();
         let _new_executor = executor.with_sandbox_config(config.clone());
     }
     
-    // with_timeoutメソッドのテスト
+    // Test for with_timeout method
     #[test]
     fn test_with_timeout() {
-        // 既存のインスタンスから新しいタイムアウト設定で新しいインスタンスを作成
+        // Create a new instance with new timeout setting from an existing instance
         let executor = CommandExecutor::new();
         let _new_executor = executor.with_timeout(120);
     }

@@ -2,262 +2,279 @@ syntax = "proto3";
 
 package mcp;
 
-// MCPセキュリティゲートウェイサービス
+option go_package = "github.com/user/mcp/pkg/api";
+option java_package = "com.example.mcp.api";
+option java_outer_classname = "McpProtos";
+
+// MCP (Managed Command Platform) Service
+// Secure gateway for executing commands and managing files
 service McpService {
-  // ヘルスチェック
+  // Health check for the service
   rpc Health(HealthRequest) returns (HealthResponse);
   
-  // コマンド実行
+  // Execute a command in a sandbox
   rpc ExecuteCommand(CommandRequest) returns (TaskCreatedResponse);
   
-  // タスク状態取得
+  // Get the status of a task
   rpc GetTaskStatus(TaskStatusRequest) returns (TaskStatusResponse);
   
-  // タスク出力ストリーミング
+  // Stream the output of a task in real-time
   rpc StreamTaskOutput(TaskStatusRequest) returns (stream TaskOutputChunk);
   
-  // タスクキャンセル
+  // Cancel a running task
   rpc CancelTask(TaskStatusRequest) returns (TaskStatusResponse);
   
-  // ファイル操作
+  // Read a file
   rpc ReadFile(ReadFileRequest) returns (ReadFileResponse);
+  // Write to a file
   rpc WriteFile(WriteFileRequest) returns (WriteFileResponse);
+  // Delete a file
   rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
 }
 
-// ヘルスチェックリクエスト
+// Health check request
 message HealthRequest {}
 
-// ヘルスチェックレスポンス
+// Health check response
 message HealthResponse {
-  // サービスの状態
+  // Service status
   string status = 1;
-  // バージョン情報
+  // Version information
   string version = 2;
-  // アップタイム（秒）
+  // Uptime in seconds
   uint64 uptime_seconds = 3;
 }
 
-// コマンド実行リクエスト
+// Command execution request
 message CommandRequest {
-  // 実行するコマンド
+  // Command to execute
   string command = 1;
-  // コマンド引数
+  // Command arguments
   repeated string args = 2;
-  // 環境変数
+  // Environment variables
   map<string, string> env = 3;
-  // 作業ディレクトリ
+  // Working directory
   optional string cwd = 4;
-  // タイムアウト（秒）
+  // Timeout in seconds
   uint32 timeout = 5;
-  // タスクのメタデータ
+  // Task metadata
   map<string, string> metadata = 6;
-  // サンドボックス設定
+  // Sandbox configuration
   SandboxConfig sandbox_config = 7;
 }
 
-// サンドボックス設定
+// Sandbox configuration
 message SandboxConfig {
-  // サンドボックスが有効かどうか
+  // Whether sandbox is enabled
   bool enabled = 1;
-  // ネットワークアクセス設定
+  // Network access configuration
   NetworkAccess network_access = 2;
-  // リソース制限
+  // Resource limits
   ResourceLimits resource_limits = 3;
-  // 読み書き許可パス
+  // Paths with read-write permission
   repeated string rw_paths = 4;
-  // 読み取り専用許可パス
+  // Paths with read-only permission
   repeated string ro_paths = 5;
-  // アクセス禁止パス
+  // Denied paths
   repeated string denied_paths = 6;
 }
 
-// ネットワークアクセス設定
+// Network access configuration
 enum NetworkAccess {
-  // ネットワークへのアクセスを許可しない
+  // No network access allowed
   NETWORK_NONE = 0;
-  // ホストと同じネットワークへのアクセスを許可
+  // Access to the same network as the host
   NETWORK_HOST = 1;
-  // 特定のホストへのアクセスのみ許可
+  // Access only to specific hosts
   NETWORK_RESTRICTED = 2;
 }
 
-// リソース制限
+// Resource limits
 message ResourceLimits {
-  // CPU制限（コア数）
+  // CPU limit (cores)
   float cpu_limit = 1;
-  // メモリ制限（バイト）
+  // Memory limit (bytes)
   uint64 memory_limit = 2;
-  // プロセス数制限
+  // Process count limit
   uint32 pids_limit = 3;
-  // IOウェイト（優先度）
+  // IO weight (priority)
   uint32 io_weight = 4;
 }
 
-// タスク作成レスポンス
+// Task creation response
 message TaskCreatedResponse {
-  // タスクID
+  // Task ID
   string task_id = 1;
-  // タスクの状態
+  // Task status
   TaskStatus status = 2;
-  // タスクの作成日時（ISO 8601形式）
+  // Task creation time (ISO 8601 format)
   string created_at = 3;
 }
 
-// タスク状態リクエスト
+// Task status request
 message TaskStatusRequest {
-  // タスクID
+  // Task ID
   string task_id = 1;
 }
 
-// タスク状態レスポンス
+// Task status response
 message TaskStatusResponse {
-  // タスク情報
+  // Task information
   TaskInfo task_info = 1;
-  // 結果（完了している場合）
+  // Result (if completed)
   optional TaskResult result = 2;
 }
 
-// タスク情報
+// Task information
 message TaskInfo {
-  // タスクID
+  // Task ID
   string task_id = 1;
-  // タスクのタイプ
+  // Task type
   TaskType task_type = 2;
-  // タスクの状態
+  // Task status
   TaskStatus status = 3;
-  // タスクの作成日時（ISO 8601形式）
+  // Task creation time (ISO 8601 format)
   string created_at = 4;
-  // タスクの開始日時（ISO 8601形式）
+  // Task start time (ISO 8601 format)
   optional string started_at = 5;
-  // タスクの完了日時（ISO 8601形式）
+  // Task completion time (ISO 8601 format)
   optional string completed_at = 6;
-  // タスクのメタデータ
+  // Task metadata
   map<string, string> metadata = 7;
 }
 
-// タスク結果
+// Task result
 message TaskResult {
-  // 終了コード
+  // Exit code
   int32 exit_code = 1;
-  // 標準出力
+  // Standard output
   string stdout = 2;
-  // 標準エラー出力
+  // Standard error output
   string stderr = 3;
-  // リソース使用量
+  // Resource usage
   ResourceUsage resource_usage = 4;
-  // 実行時間（ミリ秒）
+  // Execution time (milliseconds)
   uint64 execution_time_ms = 5;
 }
 
-// リソース使用量
+// Resource usage
 message ResourceUsage {
-  // CPU使用時間（ミリ秒）
+  // CPU usage time (milliseconds)
   uint64 cpu_time_ms = 1;
-  // 最大メモリ使用量（キロバイト）
+  // Maximum memory usage (kilobytes)
   uint64 max_memory_kb = 2;
-  // 読み込みバイト数
+  // Number of bytes read
   uint64 io_read_bytes = 3;
-  // 書き込みバイト数
+  // Number of bytes written
   uint64 io_write_bytes = 4;
 }
 
-// タスク出力チャンク
+// Task output chunk
 message TaskOutputChunk {
-  // タスクID
+  // Task ID
   string task_id = 1;
-  // チャンクタイプ
+  // Chunk type
   OutputChunkType type = 2;
-  // チャンクデータ
+  // Chunk data
   bytes data = 3;
-  // タイムスタンプ（ミリ秒）
+  // Timestamp (milliseconds)
   uint64 timestamp_ms = 4;
 }
 
-// タスクの状態
+// Task status
 enum TaskStatus {
-  // タスクが作成された
+  // Task created
   TASK_CREATED = 0;
-  // タスクがキューに入った
+  // Task queued
   TASK_QUEUED = 1;
-  // タスクが実行中
+  // Task running
   TASK_RUNNING = 2;
-  // タスクが完了した
+  // Task completed
   TASK_COMPLETED = 3;
-  // タスクが失敗した
+  // Task failed
   TASK_FAILED = 4;
-  // タスクがキャンセルされた
+  // Task cancelled
   TASK_CANCELLED = 5;
-  // タスクがタイムアウトした
+  // Task timed out
   TASK_TIMED_OUT = 6;
 }
 
-// タスクのタイプ
+// Task type
 enum TaskType {
-  // コマンド実行タスク
+  // Command execution task
   TASK_COMMAND = 0;
-  // ファイル操作タスク
+  // File operation task
   TASK_FILE = 1;
-  // HTTPリクエストタスク
+  // HTTP request task
   TASK_HTTP_REQUEST = 2;
 }
 
-// 出力チャンクタイプ
+// Output chunk type
 enum OutputChunkType {
-  // 標準出力
+  // Standard output
   CHUNK_STDOUT = 0;
-  // 標準エラー出力
+  // Standard error output
   CHUNK_STDERR = 1;
-  // 終了コード
+  // Exit code
   CHUNK_EXIT_CODE = 2;
-  // イベント
+  // Event
   CHUNK_EVENT = 3;
 }
 
-// ファイル読み取りリクエスト
+// File read request
 message ReadFileRequest {
-  // ファイルパス
+  // File path
   string path = 1;
 }
 
-// ファイル読み取りレスポンス
+// File read response
 message ReadFileResponse {
-  // ファイルパス
+  // File path
   string path = 1;
-  // ファイル内容
+  // File content
   bytes content = 2;
-  // MIMEタイプ
+  // MIME type
   string mime_type = 3;
+  // Error message (if any)
+  optional string error = 4;
 }
 
-// ファイル書き込みリクエスト
+// File write request
 message WriteFileRequest {
-  // ファイルパス
+  // File path
   string path = 1;
-  // ファイル内容
+  // File content
   bytes content = 2;
-  // 追記モード
-  bool append = 3;
+  // Whether to create parent directories if they don't exist
+  bool create_dirs = 3;
+  // File mode (permissions, octal format)
+  uint32 mode = 4;
 }
 
-// ファイル書き込みレスポンス
+// File write response
 message WriteFileResponse {
-  // ファイルパス
+  // File path
   string path = 1;
-  // 書き込みバイト数
+  // Number of bytes written
   uint64 bytes_written = 2;
+  // Error message (if any)
+  optional string error = 3;
 }
 
-// ファイル削除リクエスト
+// File delete request
 message DeleteFileRequest {
-  // ファイルパス
+  // File path
   string path = 1;
+  // Whether to recursively delete directories
+  bool recursive = 2;
 }
 
-// ファイル削除レスポンス
+// File delete response
 message DeleteFileResponse {
-  // ファイルパス
+  // File path
   string path = 1;
-  // 削除成功
+  // Whether the deletion was successful
   bool success = 2;
+  // Error message (if any)
+  optional string error = 3;
 } 

@@ -2,91 +2,91 @@ use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-/// コマンド実行リクエスト
+/// Command execution request
 #[derive(Debug, Clone)]
 pub struct ExecutionRequest {
-    /// 実行するコマンド
+    /// Command to execute
     pub command: String,
-    /// コマンド引数
+    /// Command arguments
     pub args: Vec<String>,
-    /// 環境変数
+    /// Environment variables
     pub env: HashMap<String, String>,
-    /// 作業ディレクトリ
+    /// Working directory
     pub cwd: Option<PathBuf>,
-    /// タイムアウト（秒）
+    /// Timeout (seconds)
     pub timeout: u32,
-    /// サンドボックス設定
+    /// Sandbox configuration
     pub sandbox_config: SandboxConfig,
 }
 
-/// コマンド実行結果
+/// Command execution result
 #[derive(Debug, Clone)]
 pub struct ExecutionResult {
-    /// 終了コード
+    /// Exit code
     pub exit_code: Option<i32>,
-    /// 標準出力
+    /// Standard output
     pub stdout: String,
-    /// 標準エラー出力
+    /// Standard error output
     pub stderr: String,
-    /// リソース使用状況
+    /// Resource usage
     pub resource_usage: ResourceUsage,
-    /// 実行時間（ミリ秒）
+    /// Execution time (milliseconds)
     pub execution_time_ms: u64,
 }
 
-/// リソース使用状況
+/// Resource usage
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ResourceUsage {
-    /// CPU使用時間（ミリ秒）
+    /// CPU usage time (milliseconds)
     pub cpu_time_ms: u64,
-    /// 最大メモリ使用量（キロバイト）
+    /// Maximum memory usage (kilobytes)
     pub max_memory_kb: u64,
-    /// 読み込みバイト数
+    /// Number of bytes read
     pub io_read_bytes: u64,
-    /// 書き込みバイト数
+    /// Number of bytes written
     pub io_write_bytes: u64,
 }
 
-/// サンドボックス設定
+/// Sandbox configuration
 #[derive(Debug, Clone)]
 pub struct SandboxConfig {
-    /// サンドボックスが有効かどうか
+    /// Whether sandbox is enabled
     pub enabled: bool,
-    /// seccompプロファイルへのパス
+    /// Path to seccomp profile
     pub seccomp_profile: Option<PathBuf>,
-    /// 読み書き許可パス
+    /// Paths with read-write permission
     pub rw_paths: Vec<PathBuf>,
-    /// 読み取り専用許可パス
+    /// Paths with read-only permission
     pub ro_paths: Vec<PathBuf>,
-    /// アクセス禁止パス
+    /// Denied paths
     pub denied_paths: Vec<PathBuf>,
-    /// ネットワークアクセス設定
+    /// Network access configuration
     pub network_access: NetworkAccess,
-    /// リソース制限設定
+    /// Resource limits configuration
     pub resource_limits: ResourceLimits,
 }
 
-/// ネットワークアクセス設定
+/// Network access configuration
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NetworkAccess {
-    /// ネットワークへのアクセスを許可しない
+    /// No network access allowed
     None,
-    /// ホストと同じネットワークへのアクセスを許可
+    /// Access to the same network as the host
     Host,
-    /// 特定のホストへのアクセスのみ許可
+    /// Access only to specific hosts
     Restricted(Vec<String>),
 }
 
-/// リソース制限設定
+/// Resource limits configuration
 #[derive(Debug, Clone, Default)]
 pub struct ResourceLimits {
-    /// CPU制限（コア数）
+    /// CPU limit (cores)
     pub cpu_limit: Option<f64>,
-    /// メモリ制限（バイト）
+    /// Memory limit (bytes)
     pub memory_limit: Option<u64>,
-    /// プロセス数制限
+    /// Process count limit
     pub pids_limit: Option<u32>,
-    /// IOウェイト（優先度）
+    /// IO weight (priority)
     pub io_weight: Option<u32>,
 }
 

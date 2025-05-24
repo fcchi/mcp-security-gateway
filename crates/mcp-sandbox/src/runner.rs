@@ -8,7 +8,7 @@ use tokio::process::Command;
 use tokio::time::timeout;
 use std::time::Duration;
 
-/// サンドボックス内でコマンドを実行するランナー
+/// Runner for executing commands in a sandbox
 #[derive(Debug)]
 pub struct SandboxRunner {
     bubblewrap: Option<BubblewrapWrapper>,
@@ -16,15 +16,15 @@ pub struct SandboxRunner {
 }
 
 impl SandboxRunner {
-    /// 新しいSandboxRunnerを作成
+    /// Create a new SandboxRunner
     pub fn new() -> Self {
         let bubblewrap = BubblewrapWrapper::new();
         let seccomp_manager = SeccompProfileManager::default();
         
         if bubblewrap.is_none() {
-            warn!("bubblewrapが利用できないため、サンドボックスなしで実行します。セキュリティ的に脆弱です。");
+            warn!("bubblewrap is not available, executing without sandbox. This is a security vulnerability.");
         } else {
-            info!("bubblewrapサンドボックスを使用します。");
+            info!("Using bubblewrap sandbox.");
         }
         
         Self {
@@ -33,80 +33,80 @@ impl SandboxRunner {
         }
     }
 
-    /// サンドボックス内でコマンドを実行
+    /// Execute command in sandbox
     pub async fn run(&self, request: ExecutionRequest) -> McpResult<ExecutionResult> {
         let _start_time = Instant::now();
-        debug!("コマンド実行開始: {} {:?}", request.command, request.args);
+        debug!("Starting command execution: {} {:?}", request.command, request.args);
 
-        // サンドボックスを使用するかどうか判断
+        // Determine whether to use sandbox
         let use_sandbox = request.sandbox_config.enabled && self.bubblewrap.is_some();
         
         if use_sandbox {
-            info!("bubblewrapサンドボックスモードで実行します");
+            info!("Executing in bubblewrap sandbox mode");
             self.execute_in_sandbox(&request).await
         } else {
             if request.sandbox_config.enabled {
-                warn!("bubblewrapが無効化または利用できないため、サンドボックスなしで実行します！");
+                warn!("bubblewrap is disabled or not available, executing without sandbox!");
             } else {
-                warn!("サンドボックスが無効化されています！安全でない環境で実行します。");
+                warn!("Sandbox is disabled! Executing in unsafe environment.");
             }
             self.execute_without_sandbox(&request).await
         }
     }
 
-    /// サンドボックス内でコマンドを実行
+    /// Execute command in sandbox
     async fn execute_in_sandbox(&self, request: &ExecutionRequest) -> McpResult<ExecutionResult> {
         let bubblewrap = self.bubblewrap.as_ref().unwrap();
         let start_time = Instant::now();
         
-        // seccompプロファイルを取得
+        // Get seccomp profile
         let seccomp_profile = match &request.sandbox_config.network_access {
             NetworkAccess::None => self.seccomp_manager.get_profile_path(SeccompProfileType::Basic),
             _ => self.seccomp_manager.get_profile_path(SeccompProfileType::Network),
         };
         
-        // サンドボックス設定を複製して修正
+        // Clone and modify sandbox configuration
         let mut sandbox_config = request.sandbox_config.clone();
         if seccomp_profile.is_ok() {
             sandbox_config.seccomp_profile = Some(seccomp_profile?);
         }
         
-        // bubblewrapコマンドを構築
+        // Build bubblewrap command
         let mut cmd = bubblewrap.build_command(
             &sandbox_config,
             &request.command,
             &request.args,
         );
         
-        // 環境変数を設定
+        // Set environment variables
         for (key, value) in &request.env {
             cmd.env(key, value);
         }
         
-        // 作業ディレクトリを設定（ただし、サンドボックス内で有効なパスである必要がある）
+        // Set working directory (must be a valid path within the sandbox)
         if let Some(cwd) = &request.cwd {
             cmd.env("PWD", cwd);
-            // 注: bubblewrapではcurrent_dirは機能しないため、環境変数PWDを設定
+            // Note: current_dir doesn't work with bubblewrap, so we set the PWD environment variable
         }
 
-        // タイムアウトを設定
+        // Set timeout
         let timeout_duration = Duration::from_secs(request.timeout as u64);
         
-        debug!("bubblewrapコマンド: {:?}", cmd);
+        debug!("bubblewrap command: {:?}", cmd);
         
-        // コマンドを実行
+        // Execute command
         let output = match timeout(timeout_duration, cmd.output()).await {
             Ok(result) => match result {
                 Ok(output) => output,
                 Err(e) => {
-                    error!("bubblewrapコマンド実行エラー: {}", e);
-                    return Err(McpError::Execution(format!("サンドボックス実行に失敗しました: {}", e)));
+                    error!("bubblewrap command execution error: {}", e);
+                    return Err(McpError::Execution(format!("Sandbox execution failed: {}", e)));
                 }
             },
             Err(_) => {
-                error!("bubblewrapコマンド実行がタイムアウトしました: {}秒", request.timeout);
+                error!("bubblewrap command execution timed out: {} seconds", request.timeout);
                 return Err(McpError::Execution(format!(
-                    "サンドボックス実行がタイムアウトしました: {}秒",
+                    "Sandbox execution timed out: {} seconds",
                     request.timeout
                 )));
             }
@@ -115,8 +115,8 @@ impl SandboxRunner {
         let execution_time = start_time.elapsed();
         let execution_time_ms = execution_time.as_millis() as u64;
         
-        // リソース使用状況を計測（将来的にはcgroupsなどから取得）
-        // 現在はダミーの値を返す
+        // Measure resource usage (in the future, this will be obtained from cgroups, etc.)
+        // Currently returns dummy values
         let resource_usage = ResourceUsage {
             cpu_time_ms: execution_time_ms,
             max_memory_kb: 0,
@@ -133,40 +133,40 @@ impl SandboxRunner {
         })
     }
 
-    /// サンドボックスなしでコマンドを実行（マイルストーン1の実装を再利用）
+    /// Execute command without sandbox (reusing milestone 1 implementation)
     async fn execute_without_sandbox(&self, request: &ExecutionRequest) -> McpResult<ExecutionResult> {
         let start_time = Instant::now();
         let mut cmd = Command::new(&request.command);
         
-        // 引数を設定
+        // Set arguments
         cmd.args(&request.args);
         
-        // 環境変数を設定
+        // Set environment variables
         for (key, value) in &request.env {
             cmd.env(key, value);
         }
         
-        // 作業ディレクトリを設定
+        // Set working directory
         if let Some(cwd) = &request.cwd {
             cmd.current_dir(cwd);
         }
 
-        // タイムアウトを設定
+        // Set timeout
         let timeout_duration = Duration::from_secs(request.timeout as u64);
         
-        // コマンドを実行
+        // Execute command
         let output = match timeout(timeout_duration, cmd.output()).await {
             Ok(result) => match result {
                 Ok(output) => output,
                 Err(e) => {
-                    error!("コマンド実行エラー: {}", e);
-                    return Err(McpError::Execution(format!("コマンド実行に失敗しました: {}", e)));
+                    error!("Command execution error: {}", e);
+                    return Err(McpError::Execution(format!("Command execution failed: {}", e)));
                 }
             },
             Err(_) => {
-                error!("コマンド実行がタイムアウトしました: {}秒", request.timeout);
+                error!("Command execution timed out: {} seconds", request.timeout);
                 return Err(McpError::Execution(format!(
-                    "コマンド実行がタイムアウトしました: {}秒",
+                    "Command execution timed out: {} seconds",
                     request.timeout
                 )));
             }
@@ -175,8 +175,8 @@ impl SandboxRunner {
         let execution_time = start_time.elapsed();
         let execution_time_ms = execution_time.as_millis() as u64;
         
-        // リソース使用状況を計測（マイルストーン2で実装予定）
-        // 現在はダミーの値を返す
+        // Measure resource usage (to be implemented in milestone 2)
+        // Currently returns dummy values
         let resource_usage = ResourceUsage {
             cpu_time_ms: execution_time_ms,
             max_memory_kb: 0,

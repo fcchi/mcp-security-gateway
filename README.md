@@ -1,24 +1,24 @@
 # MCP Security Gateway
 
-MCPセキュリティゲートウェイは、AI/MLモデルと外部システム間の安全な通信を実現するためのセキュリティアダプターです。サンドボックス化されたコマンド実行、ファイルアクセス制御、セキュリティポリシー適用を提供します。
+MCP Security Gateway is a security adapter for enabling secure communication between AI/ML models and external systems. It provides sandboxed command execution, file access control, and security policy enforcement.
 
-## 主な機能
+## Key Features
 
-- **安全なコマンド実行**: bubblewrap, seccompによるサンドボックス化
-- **ポリシーベースの制御**: OPA (Rego)によるきめ細かなセキュリティポリシー
-- **監査とトレース**: 完全な監査ログと可観測性
-- **高可用性**: Active-Active / Active-Passiveトポロジをサポート
-- **マルチインターフェース**: REST API / gRPC / クライアントライブラリ
+- **Secure Command Execution**: Sandboxing using bubblewrap, seccomp
+- **Policy-based Control**: Fine-grained security policies using OPA (Rego)
+- **Audit and Tracing**: Complete audit logs and observability
+- **High Availability**: Supports Active-Active / Active-Passive topology
+- **Multiple Interfaces**: REST API / gRPC / Client Libraries
 
-## クイックスタート
+## Quick Start
 
-### 必要なもの
+### Requirements
 
-- Docker と Docker Compose
-- Rust (開発時のみ、1.73以上を推奨)
-- Protocol Buffers コンパイラ (protoc)
+- Docker and Docker Compose
+- Rust (for development only, version 1.73 or higher recommended)
+- Protocol Buffers Compiler (protoc)
 
-### Protocol Buffersコンパイラのインストール
+### Installing Protocol Buffers Compiler
 
 **Linux (Ubuntu/Debian):**
 ```bash
@@ -32,46 +32,46 @@ brew install protobuf
 ```
 
 **Windows:**
-1. [Protocol Buffers リリースページ](https://github.com/protocolbuffers/protobuf/releases)から、最新のWindows用リリース（例：`protoc-25.2-win64.zip`）をダウンロード
-2. ダウンロードしたZIPファイルを任意のフォルダに解凍
-3. 解凍したフォルダの`bin`ディレクトリ（例：`C:\protoc\bin`）を環境変数PATHに追加
-4. コマンドプロンプトまたはPowerShellを再起動
-5. `protoc --version`コマンドでインストールを確認
+1. Download the latest Windows release (e.g., `protoc-25.2-win64.zip`) from the [Protocol Buffers release page](https://github.com/protocolbuffers/protobuf/releases)
+2. Extract the downloaded ZIP file to any folder
+3. Add the `bin` directory of the extracted folder (e.g., `C:\protoc\bin`) to the PATH environment variable
+4. Restart Command Prompt or PowerShell
+5. Verify the installation with the `protoc --version` command
 
-**検証方法:**
-以下のコマンドで正しくインストールされているか確認できます：
+**Verification:**
+You can verify the installation with the following command:
 ```bash
 protoc --version
 ```
 
-### Dockerを使ったクイックスタート
+### Quick Start with Docker
 
-リポジトリをクローンして、Docker Composeで起動できます：
+You can clone the repository and start with Docker Compose:
 
 ```bash
-# リポジトリをクローン
+# Clone the repository
 git clone https://github.com/fcchi/mcp-security-gateway.git
 cd mcp-security-gateway
 
-# Docker Composeで起動
+# Start with Docker Compose
 docker-compose up -d
 ```
 
-サービスが起動したら、以下のURLでヘルスチェックができます：
+Once the service is running, you can check its health at:
 
 ```
 http://localhost:8081/health
 ```
 
-### セキュアなdistrolessイメージの使用
+### Using Secure Distroless Images
 
-本番環境ではセキュリティを強化するために、distrolessイメージの使用を推奨します：
+For production environments, we recommend using distroless images for enhanced security:
 
 ```bash
-# distrolessイメージを使用したDockerビルド
+# Docker build with distroless image
 ./scripts/build-distroless.sh
 
-# または直接実行
+# Or run directly
 docker run -d --name mcp-gateway \
   --cap-add SYS_ADMIN \
   --security-opt seccomp=unconfined \
@@ -82,16 +82,16 @@ docker run -d --name mcp-gateway \
   ghcr.io/fcchi/mcp-security-gateway:latest
 ```
 
-distrolessイメージは攻撃対象領域を最小限に抑え、シェルやデバッグツールを含まないため、セキュリティリスクを大幅に低減します。詳細は[デプロイガイド](docs/operations/DEPLOY_GUIDE.md#3.2-distrolessイメージの利用)を参照してください。
+Distroless images significantly reduce security risks by minimizing the attack surface and excluding shells and debugging tools. For more details, refer to the [Deployment Guide](docs/operations/DEPLOY_GUIDE.md#3.2-using-distroless-images).
 
-### ローカル開発環境のセットアップ
+### Setting Up Local Development Environment
 
 ```bash
-# リポジトリをクローン
+# Clone the repository
 git clone https://github.com/fcchi/mcp-security-gateway.git
 cd mcp-security-gateway
 
-# 依存関係をインストール
+# Install dependencies
 # Linux (Ubuntu/Debian):
 sudo apt-get install -y protobuf-compiler bubblewrap libseccomp-dev
 
@@ -99,152 +99,156 @@ sudo apt-get install -y protobuf-compiler bubblewrap libseccomp-dev
 brew install protobuf
 
 # Windows:
-# Protocol Buffersコンパイラのインストール手順に従ってインストール
+# Follow the Protocol Buffers compiler installation instructions
 
-# ビルド
+# Build
 cargo build
 
-# 単体テストの実行
+# Run unit tests
 cargo test
 
-# 実行
+# Run
 cargo run -- serve --host 127.0.0.1 --port 8081
 ```
 
-### 基本的な使い方
+### Basic Usage
 
-#### コマンド実行APIの例
+#### Command Execution API Example
 
 ```bash
-# gRPCurlを使用した例（インストールが必要）
+# Example using gRPCurl (requires installation)
 grpcurl -plaintext -d '{
   "command": "echo",
   "args": ["hello world"],
   "timeout": 30
 }' localhost:8081 mcp.McpService/ExecuteCommand
 
-# タスク状態の確認
+# Check task status
 grpcurl -plaintext -d '{"task_id": "task-xxxxx"}' localhost:8081 mcp.McpService/GetTaskStatus
 ```
 
-## ドキュメント
+## Documentation
 
-### アーキテクチャ
+### Architecture
 
-- [アーキテクチャ概要](docs/architecture/ARCHITECTURE_OVERVIEW.md) - システム全体構成と要点
-- [ユーザーガイド](docs/architecture/USER_GUIDE.md) - 基本的な使い方と操作方法
+- [Architecture Overview](docs/architecture/ARCHITECTURE_OVERVIEW.md) - Overall system architecture and key points
+- [User Guide](docs/architecture/USER_GUIDE.md) - Basic usage and operations
 
 ### API
 
-- [MCP プロトコル仕様](docs/api/MCP_PROTOCOL.md) - プロトコルの詳細
-- [API リファレンス](docs/api/API_REFERENCE.md) - APIエンドポイントと機能
+- [MCP Protocol Specification](docs/api/MCP_PROTOCOL.md) - Protocol details
+- [API Reference](docs/api/API_REFERENCE.md) - API endpoints and features
 
-### セキュリティ
+### Security
 
-- [セキュリティ機能](docs/security/SECURITY_FEATURES.md) - セキュリティモデルと機能
-- [脅威モデル](docs/security/THREAT_MODEL.md) - セキュリティリスクと対策
+- [Security Features](docs/security/SECURITY_FEATURES.md) - Security model and features
+- [Threat Model](docs/security/THREAT_MODEL.md) - Security risks and countermeasures
 
-### 運用
+### Operations
 
-- [デプロイガイド](docs/operations/DEPLOY_GUIDE.md) - インストールと設定
-- [運用手順書](docs/operations/OPERATIONS_RUNBOOK.md) - 運用とメンテナンス
-- [パフォーマンスSLO](docs/operations/PERFORMANCE_SLO.md) - サービスレベル目標
+- [Deployment Guide](docs/operations/DEPLOY_GUIDE.md) - Installation and configuration
+- [Operations Runbook](docs/operations/OPERATIONS_RUNBOOK.md) - Operations and maintenance
+- [Performance SLO](docs/operations/PERFORMANCE_SLO.md) - Service level objectives
 
-### 品質
+### Quality
 
-- [エラー処理](docs/quality/ERROR_HANDLING.md) - エラー分類と対応
-- [テスト戦略](docs/quality/TEST_STRATEGY.md) - テスト手法とカバレッジ
+- [Error Handling](docs/quality/ERROR_HANDLING.md) - Error classification and handling
+- [Test Strategy](docs/quality/TEST_STRATEGY.md) - Testing methods and coverage
 
-### 可観測性
+### Observability
 
-- [可観測性](docs/observability/OBSERVABILITY.md) - ログ、メトリクス、トレース
+- [Observability](docs/observability/OBSERVABILITY.md) - Logs, metrics, and traces
 
-### メタ情報
+### Meta Information
 
-- [用語集](docs/meta/GLOSSARY.md) - 主要用語と定義
-- [変更履歴](docs/meta/CHANGELOG.md) - バージョン変更記録
-- [バージョニングとアップグレード](docs/meta/VERSIONING_UPGRADE.md) - バージョン管理とアップグレード手順
-- [実装ロードマップ](docs/meta/ROADMAP.md) - 実装計画とマイルストーン
+- [Glossary](docs/meta/GLOSSARY.md) - Key terms and definitions
+- [Changelog](docs/meta/CHANGELOG.md) - Version change history
+- [Versioning and Upgrade](docs/meta/VERSIONING_UPGRADE.md) - Version management and upgrade procedures
+- [Implementation Roadmap](docs/meta/ROADMAP.md) - Implementation plan and milestones
 
-## クロスリファレンス
+## Cross Reference
 
-| カテゴリ | 関連するドキュメント | 関連する指標/アラート |
+| Category | Related Documents | Related Metrics/Alerts |
 |---------|-------------------|---------------------|
-| エラーコード | [MCP_PROTOCOL.md](docs/api/MCP_PROTOCOL.md), [ERROR_HANDLING.md](docs/quality/ERROR_HANDLING.md) | MCPHighErrorRate |
-| パフォーマンス | [PERFORMANCE_SLO.md](docs/operations/PERFORMANCE_SLO.md), [TEST_STRATEGY.md](docs/quality/TEST_STRATEGY.md) | MCPLatencyP99, MCPThroughputAPI |
-| セキュリティ | [SECURITY_FEATURES.md](docs/security/SECURITY_FEATURES.md), [DEPLOY_GUIDE.md](docs/operations/DEPLOY_GUIDE.md) | MCPHighPolicyViolationRate |
-| 可用性 | [ARCHITECTURE_OVERVIEW.md](docs/architecture/ARCHITECTURE_OVERVIEW.md), [OPERATIONS_RUNBOOK.md](docs/operations/OPERATIONS_RUNBOOK.md) | MCPAvailabilityProd |
+| Error Codes | [MCP_PROTOCOL.md](docs/api/MCP_PROTOCOL.md), [ERROR_HANDLING.md](docs/quality/ERROR_HANDLING.md) | MCPHighErrorRate |
+| Performance | [PERFORMANCE_SLO.md](docs/operations/PERFORMANCE_SLO.md), [TEST_STRATEGY.md](docs/quality/TEST_STRATEGY.md) | MCPLatencyP99, MCPThroughputAPI |
+| Security | [SECURITY_FEATURES.md](docs/security/SECURITY_FEATURES.md), [DEPLOY_GUIDE.md](docs/operations/DEPLOY_GUIDE.md) | MCPHighPolicyViolationRate |
+| Availability | [ARCHITECTURE_OVERVIEW.md](docs/architecture/ARCHITECTURE_OVERVIEW.md), [OPERATIONS_RUNBOOK.md](docs/operations/OPERATIONS_RUNBOOK.md) | MCPAvailabilityProd |
 
-## 貢献
+## Contributing
 
-貢献いただける方は、[CONTRIBUTING.md](CONTRIBUTING.md)を参照してください。すべてのコントリビューターに[行動規範](CODE_OF_CONDUCT.md)の遵守をお願いしています。
+If you'd like to contribute, please refer to [CONTRIBUTING.md](CONTRIBUTING.md). All contributors are expected to adhere to our [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## 開発状況
+## Development Status
 
-現在の開発状況:
+Current development status:
 
-- ✅ マイルストーン0（プロジェクト雛形）: 基本的なRustワークスペース構成の完了
-  - ✅ リポジトリ構造とワークスペース設定
-  - ✅ 基本的なgRPCサーバー実装
-  - ✅ GitHub Actions CI設定
-  - ✅ コード品質ゲート（rustfmt & clippy）
+- ✅ Milestone 0 (Project Template): Completed basic Rust workspace configuration
+  - ✅ Repository structure and workspace setup
+  - ✅ Basic gRPC server implementation
+  - ✅ GitHub Actions CI setup
+  - ✅ Code quality gates (rustfmt & clippy)
   - ✅ CONTRIBUTING & ISSUE_TEMPLATE
-  - ✅ レビューと最終調整
-- ✅ マイルストーン1（Core MVP α）: 基本機能の実装完了
-  - ✅ gRPCサーバーの基本実装
-  - ✅ タスク実行プロトコル定義とスタブ実装
-  - ✅ コマンド実行アダプター
-  - ✅ 構造化ログ出力
-  - ✅ 単体テスト
-  - ✅ クイックスタート設定
-- ✅ マイルストーン2（Policy & Security）: 完了
-  - ✅ OPA統合（Regoポリシー）の基本実装
-  - ✅ bubblewrapサンドボックスプロファイルの実装
-  - ✅ エラーコードとgRPC statusのマッピング
-  - ✅ 共通Result<T, McpError>ヘルパーの実装
-  - ✅ セキュリティドキュメントの更新
-  - ✅ グローバルエラーハンドラーの実装
-  - ✅ レビューと最終調整
-- ✅ マイルストーン3（Observability Stack）: 完了
-  - ✅ Prometheusヒストグラムとして公開（task_latency_ms）
-  - ✅ OTLP トレースエクスポーター追加
-  - ✅ e2eスクリプト（pexpect）によるlsフロー検証
-  - ✅ Grafanaダッシュボード設定（overview, performance）
-  - ✅ ドキュメントのmkdocsビルドとリンクチェック（CI）
-  - ✅ マイルストーン3の最終レビューと調整
-- ✅ マイルストーン4（CI Gate & Error Strategy）: 完了
-  - ✅ Trivy & cargo-audit SCA step追加（T040）
-  - ✅ カバレッジゲート追加（T041）
-  - ✅ McpError ↔ gRPC status mapping matrix（T042）
-  - ✅ ERROR_HANDLING link from API_REFERENCE（T043）
-  - ✅ action: Release Drafter 設定（T044）
-  - ✅ レビュー & バグ修正（M4）（T045）
-- ✅ マイルストーン5（Packaging & Deployment）: 完了
-  - ✅ create distroless Dockerfile + ko build（T050）
-  - ✅ build .deb & .rpm via fpm（T051）
-  - ✅ create chart mcp-gateway（T052）
-  - ✅ DEPLOY_GUIDE update (helm + deb)（T053）
-  - ✅ action: MkDocs-deploy (GitHub Pages)（T054）
-  - ✅ レビュー & バグ修正（M5）（T055）
-- ✅ マイルストーン6（Performance & SLO Validation）: 完了
-  - ✅ locust script 100 RPS × 5 min baseline（T060）
-  - ✅ Prometheus alert rule SLO_violation（T061）
-  - ✅ PERFORMANCE_SLO link to alert rule（T062）
-  - ✅ action: nightly dependency-update w/ Renovate（T063）
-  - ✅ レビュー & バグ修正（M6）（T064）
+  - ✅ Review and final adjustments
+- ✅ Milestone 1 (Core MVP α): Completed basic functionality implementation
+  - ✅ Basic gRPC server implementation
+  - ✅ Task execution protocol definition and stub implementation
+  - ✅ Command execution adapter
+  - ✅ Structured log output
+  - ✅ Unit tests
+  - ✅ Quick start configuration
+- ✅ Milestone 2 (Policy & Security): Completed
+  - ✅ Basic implementation of OPA integration (Rego policies)
+  - ✅ Implementation of bubblewrap sandbox profiles
+  - ✅ Mapping of error codes and gRPC status
+  - ✅ Implementation of common Result<T, McpError> helper
+  - ✅ Update of security documentation
+  - ✅ Implementation of global error handler
+  - ✅ Review and final adjustments
+- ✅ Milestone 3 (Observability Stack): Completed
+  - ✅ Exposed as Prometheus histograms (task_latency_ms)
+  - ✅ Added OTLP trace exporter
+  - ✅ Verification of ls flow using e2e scripts (pexpect)
+  - ✅ Grafana dashboard setup (overview, performance)
+  - ✅ mkdocs build and link check for documentation (CI)
+  - ✅ Final review and adjustments for Milestone 3
+- ✅ Milestone 4 (CI Gate & Error Strategy): Completed
+  - ✅ Added Trivy & cargo-audit SCA step (T040)
+  - ✅ Added coverage gate (T041)
+  - ✅ McpError ↔ gRPC status mapping matrix (T042)
+  - ✅ ERROR_HANDLING link from API_REFERENCE (T043)
+  - ✅ action: Release Drafter configuration (T044)
+  - ✅ Review & bug fixes (M4) (T045)
+- ✅ Milestone 5 (Packaging & Deployment): Completed
+  - ✅ create distroless Dockerfile + ko build (T050)
+  - ✅ build .deb & .rpm via fpm (T051)
+  - ✅ create chart mcp-gateway (T052)
+  - ✅ DEPLOY_GUIDE update (helm + deb) (T053)
+  - ✅ action: MkDocs-deploy (GitHub Pages) (T054)
+  - ✅ Review & bug fixes (M5) (T055)
+- ✅ Milestone 6 (Performance & SLO Validation): Completed
+  - ✅ locust script 100 RPS × 5 min baseline (T060)
+  - ✅ Prometheus alert rule SLO_violation (T061)
+  - ✅ PERFORMANCE_SLO link to alert rule (T062)
+  - ✅ action: nightly dependency-update w/ Renovate (T063)
+  - ✅ Review & bug fixes (M6) (T064)
 
-詳細な進捗状況は[実装ロードマップ](docs/meta/ROADMAP.md)と[変更履歴](docs/meta/CHANGELOG.md)を参照してください。
+For detailed progress, refer to the [Implementation Roadmap](docs/meta/ROADMAP.md) and [Changelog](docs/meta/CHANGELOG.md).
 
-## 次のステップ
+## Next Steps
 
-優先して取り組む予定のタスク:
+Priority tasks for the future:
 
-1. マイルストーン7（Release β & Docs Polish）の実装開始
-   - bump to v0.2.0 + CHANGELOG entry（T070）
-   - README badges (CI, Coverage, Go-Report)（T071）
-   - USER_GUIDE (旧 ARCH_OVERVIEW.md) final polish（T072）
-   - GitHub Release draft w/ binaries & checksums（T073）
+1. Start implementation of Milestone 7 (Release β & Docs Polish)
+   - bump to v0.2.0 + CHANGELOG entry (T070)
+   - README badges (CI, Coverage, Go-Report) (T071)
+   - USER_GUIDE (formerly ARCH_OVERVIEW.md) final polish (T072)
+   - GitHub Release draft w/ binaries & checksums (T073)
 
-## ライセンス
+## Recent Updates
 
-Apache License 2.0 - 詳細は[LICENSE](LICENSE)ファイルを参照してください。 
+- **2025-05-24**: Completed translation of all Japanese comments to English in the codebase (excluding docs directory).
+
+## License
+
+Apache License 2.0 - See the [LICENSE](LICENSE) file for details. 

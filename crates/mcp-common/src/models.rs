@@ -1,120 +1,120 @@
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 
-/// タスクのステータス
+/// Task status
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TaskStatus {
-    /// タスクが作成され、まだ実行されていない
+    /// Task has been created but not yet executed
     Created,
-    /// タスクが実行待ちキューに入っている
+    /// Task is in the execution queue
     Queued,
-    /// タスクが実行中
+    /// Task is currently running
     Running,
-    /// タスクが正常に完了した
+    /// Task completed successfully
     Completed,
-    /// タスクが失敗した
+    /// Task failed
     Failed,
-    /// タスクがキャンセルされた
+    /// Task was cancelled
     Cancelled,
-    /// タスクの実行時間が制限を超えた
+    /// Task execution time exceeded the limit
     TimedOut,
 }
 
-/// タスクのタイプ
+/// Task type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TaskType {
-    /// コマンド実行タスク
+    /// Command execution task
     Command,
-    /// ファイル操作タスク
+    /// File operation task
     File,
-    /// HTTPリクエストタスク
+    /// HTTP request task
     HttpRequest,
 }
 
-/// タスクの基本情報
+/// Basic task information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskInfo {
-    /// タスクのユニークID
+    /// Unique task ID
     pub task_id: String,
-    /// タスクのタイプ
+    /// Task type
     pub task_type: TaskType,
-    /// タスクの現在のステータス
+    /// Current task status
     pub status: TaskStatus,
-    /// タスクの作成日時（ISO 8601形式）
+    /// Task creation date (ISO 8601 format)
     pub created_at: String,
-    /// タスクの開始日時（ISO 8601形式）
+    /// Task start date (ISO 8601 format)
     pub started_at: Option<String>,
-    /// タスクの完了日時（ISO 8601形式）
+    /// Task completion date (ISO 8601 format)
     pub completed_at: Option<String>,
-    /// タスクのメタデータ
+    /// Task metadata
     #[serde(default)]
     pub metadata: HashMap<String, String>,
 }
 
-/// コマンド実行タスクのリクエスト
+/// Command execution task request
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommandRequest {
-    /// 実行するコマンド
+    /// Command to execute
     pub command: String,
-    /// コマンドの引数
+    /// Command arguments
     #[serde(default)]
     pub args: Vec<String>,
-    /// 環境変数
+    /// Environment variables
     #[serde(default)]
     pub env: HashMap<String, String>,
-    /// 作業ディレクトリ
+    /// Working directory
     #[serde(default)]
     pub cwd: Option<String>,
-    /// タイムアウト（秒）
+    /// Timeout (seconds)
     #[serde(default = "default_timeout")]
     pub timeout: u32,
-    /// タスクのメタデータ
+    /// Task metadata
     #[serde(default)]
     pub metadata: HashMap<String, String>,
 }
 
-/// コマンド実行タスクの結果
+/// Command execution task result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommandResult {
-    /// タスクの基本情報
+    /// Basic task information
     pub task_info: TaskInfo,
-    /// 終了コード
+    /// Exit code
     pub exit_code: Option<i32>,
-    /// 標準出力
+    /// Standard output
     pub stdout: Option<String>,
-    /// 標準エラー出力
+    /// Standard error output
     pub stderr: Option<String>,
-    /// リソース使用量
+    /// Resource usage
     pub resource_usage: Option<ResourceUsage>,
 }
 
-/// リソース使用量の情報
+/// Resource usage information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResourceUsage {
-    /// CPU使用時間（ミリ秒）
+    /// CPU usage time (milliseconds)
     pub cpu_time_ms: u64,
-    /// 最大メモリ使用量（キロバイト）
+    /// Maximum memory usage (kilobytes)
     pub max_memory_kb: u64,
-    /// 読み込みバイト数
+    /// Number of bytes read
     pub io_read_bytes: u64,
-    /// 書き込みバイト数
+    /// Number of bytes written
     pub io_write_bytes: u64,
 }
 
-/// ヘルスチェックの応答
+/// Health check response
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HealthResponse {
-    /// サービスのステータス
+    /// Service status
     pub status: String,
-    /// バージョン情報
+    /// Version information
     pub version: String,
-    /// アップタイム（秒）
+    /// Uptime (seconds)
     pub uptime_seconds: u64,
 }
 
-/// デフォルトのタイムアウト値（30秒）
+/// Default timeout value (30 seconds)
 fn default_timeout() -> u32 {
     30
 } 

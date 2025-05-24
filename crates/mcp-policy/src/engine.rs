@@ -5,13 +5,13 @@ use std::sync::Arc;
 use tracing::{debug, error, info};
 use std::fmt;
 
-/// ポリシー評価インターフェイス
+/// Policy evaluation interface
 pub trait PolicyEvaluator: Send + Sync {
-    /// ポリシーを評価し、決定結果を返す
+    /// Evaluate policy and return decision result
     fn evaluate(&self, input: &PolicyInput) -> McpResult<PolicyDecision>;
 }
 
-/// ポリシーエンジン
+/// Policy engine
 #[derive(Clone)]
 pub struct PolicyEngine {
     evaluator: Arc<dyn PolicyEvaluator>,
@@ -30,35 +30,35 @@ impl Default for PolicyEngine {
 }
 
 impl PolicyEngine {
-    /// 新しいポリシーエンジンを作成（デフォルトのStubPolicyEvaluatorを使用）
+    /// Create a new policy engine (using default StubPolicyEvaluator)
     pub fn new() -> Self {
         Self::with_evaluator(StubPolicyEvaluator::default())
     }
     
-    /// 指定したポリシー評価器で新しいポリシーエンジンを作成
+    /// Create a new policy engine with specified policy evaluator
     pub fn with_evaluator(evaluator: impl PolicyEvaluator + 'static) -> Self {
         Self {
             evaluator: Arc::new(evaluator),
         }
     }
 
-    /// コマンド実行を許可するかどうかを評価
+    /// Evaluate whether to allow command execution
     pub fn check_command_execution(&self, input: &PolicyInput) -> McpResult<()> {
-        debug!("ポリシー評価: コマンド実行 command={}", input.command.name);
+        debug!("Policy evaluation: Command execution command={}", input.command.name);
         
         let decision = self.evaluator.evaluate(input)?;
         
         if !decision.allow {
             let reason = decision.reasons.join(", ");
             let message = if reason.is_empty() {
-                format!("コマンド '{}' の実行はポリシーにより拒否されました", input.command.name)
+                format!("Command '{}' execution was denied by policy", input.command.name)
             } else {
-                format!("コマンド '{}' の実行はポリシーにより拒否されました: {}", input.command.name, reason)
+                format!("Command '{}' execution was denied by policy: {}", input.command.name, reason)
             };
             
-            error!("ポリシー違反: {}", message);
+            error!("Policy violation: {}", message);
             
-            // 詳細情報を含めてエラーを返す
+            // Return error with details
             let details = json!({
                 "command": input.command.name,
                 "reasons": decision.reasons,
@@ -73,10 +73,10 @@ impl PolicyEngine {
             ));
         }
         
-        // 警告があれば記録
+        // Log warnings if any
         if !decision.warnings.is_empty() {
             info!(
-                "ポリシー警告: コマンド '{}' は許可されましたが、警告があります: {}",
+                "Policy warning: Command '{}' was allowed, but with warnings: {}",
                 input.command.name,
                 decision.warnings.join(", ")
             );
@@ -85,24 +85,24 @@ impl PolicyEngine {
         Ok(())
     }
 
-    /// ファイルアクセスを許可するかどうかを評価
+    /// Evaluate whether to allow file access
     pub fn check_file_access(&self, input: &PolicyInput) -> McpResult<()> {
         if let Some(file_info) = &input.file {
-            debug!("ポリシー評価: ファイルアクセス path={}, mode={}", file_info.path, file_info.mode);
+            debug!("Policy evaluation: File access path={}, mode={}", file_info.path, file_info.mode);
             
             let decision = self.evaluator.evaluate(input)?;
             
             if !decision.allow {
                 let reason = decision.reasons.join(", ");
                 let message = if reason.is_empty() {
-                    format!("ファイル '{}' への {} アクセスはポリシーにより拒否されました", 
-                        file_info.path, file_info.mode)
+                    format!("{} access to file '{}' was denied by policy", 
+                        file_info.mode, file_info.path)
                 } else {
-                    format!("ファイル '{}' への {} アクセスはポリシーにより拒否されました: {}", 
-                        file_info.path, file_info.mode, reason)
+                    format!("{} access to file '{}' was denied by policy: {}", 
+                        file_info.mode, file_info.path, reason)
                 };
                 
-                error!("ポリシー違反: {}", message);
+                error!("Policy violation: {}", message);
                 
                 let details = json!({
                     "path": file_info.path,
@@ -120,8 +120,8 @@ impl PolicyEngine {
             
             if !decision.warnings.is_empty() {
                 info!(
-                    "ポリシー警告: ファイル '{}' への {} アクセスは許可されましたが、警告があります: {}",
-                    file_info.path, file_info.mode, decision.warnings.join(", ")
+                    "Policy warning: {} access to file '{}' was allowed, but with warnings: {}",
+                    file_info.mode, file_info.path, decision.warnings.join(", ")
                 );
             }
         }
@@ -129,10 +129,10 @@ impl PolicyEngine {
         Ok(())
     }
 
-    /// ネットワークアクセスを許可するかどうかを評価
+    /// Evaluate whether to allow network access
     pub fn check_network_access(&self, input: &PolicyInput) -> McpResult<()> {
         if let Some(network_info) = &input.network {
-            debug!("ポリシー評価: ネットワークアクセス host={}:{}, protocol={}", 
+            debug!("Policy evaluation: Network access host={}:{}, protocol={}", 
                 network_info.host, network_info.port, network_info.protocol);
             
             let decision = self.evaluator.evaluate(input)?;
@@ -140,14 +140,14 @@ impl PolicyEngine {
             if !decision.allow {
                 let reason = decision.reasons.join(", ");
                 let message = if reason.is_empty() {
-                    format!("ホスト '{}:{}' への {} アクセスはポリシーにより拒否されました", 
-                        network_info.host, network_info.port, network_info.protocol)
+                    format!("{} access to host '{}:{}' was denied by policy", 
+                        network_info.protocol, network_info.host, network_info.port)
                 } else {
-                    format!("ホスト '{}:{}' への {} アクセスはポリシーにより拒否されました: {}", 
-                        network_info.host, network_info.port, network_info.protocol, reason)
+                    format!("{} access to host '{}:{}' was denied by policy: {}", 
+                        network_info.protocol, network_info.host, network_info.port, reason)
                 };
                 
-                error!("ポリシー違反: {}", message);
+                error!("Policy violation: {}", message);
                 
                 let details = json!({
                     "host": network_info.host,
@@ -166,8 +166,8 @@ impl PolicyEngine {
             
             if !decision.warnings.is_empty() {
                 info!(
-                    "ポリシー警告: ホスト '{}:{}' への {} アクセスは許可されましたが、警告があります: {}",
-                    network_info.host, network_info.port, network_info.protocol, decision.warnings.join(", ")
+                    "Policy warning: {} access to host '{}:{}' was allowed, but with warnings: {}",
+                    network_info.protocol, network_info.host, network_info.port, decision.warnings.join(", ")
                 );
             }
         }
@@ -176,23 +176,23 @@ impl PolicyEngine {
     }
 }
 
-/// ヘルパー関数：ポリシー違反エラーを生成
+/// Helper function: Generate policy violation error
 pub fn policy_violation(_code: u32, message: String, _details: Option<serde_json::Value>) -> McpError {
     McpError::PolicyViolation(message)
 }
 
-/// OPAポリシー評価器
+/// OPA policy evaluator
 #[allow(dead_code)]
 pub struct OpaEvaluator {
-    // OPAのポリシーモジュール（スタブ実装）
+    // OPA policy module (stub implementation)
     query_path: String,
 }
 
 impl OpaEvaluator {
-    /// 新しいOPAポリシー評価器を作成
+    /// Create a new OPA policy evaluator
     pub fn new(_wasm_policy_bytes: &[u8], query_path: &str) -> McpResult<Self> {
-        // 注：opa-wasmのAPIは変更されている可能性があります。実際のAPI仕様に合わせて修正が必要です。
-        // このスタブ実装では、APIの詳細を抽象化します。
+        // Note: The opa-wasm API may have changed. Adjustments may be needed based on actual API specs.
+        // This stub implementation abstracts the API details.
         
         Ok(Self {
             query_path: query_path.to_string(),
@@ -202,27 +202,27 @@ impl OpaEvaluator {
 
 impl PolicyEvaluator for OpaEvaluator {
     fn evaluate(&self, input: &PolicyInput) -> McpResult<PolicyDecision> {
-        // 入力をJSON形式に変換
+        // Convert input to JSON format
         let _input_json = serde_json::to_value(input)
-            .map_err(|e| McpError::Internal(format!("入力のシリアライズに失敗しました: {}", e)))?;
+            .map_err(|e| McpError::Internal(format!("Failed to serialize input: {}", e)))?;
         
-        // 注：実際のOPA評価はここに実装する必要があります
-        // この実装はスタブです
+        // Note: Actual OPA evaluation needs to be implemented here
+        // This is a stub implementation
         
-        // スタブの結果を返す
+        // Return stub result
         Ok(PolicyDecision {
             allow: true,
-            warnings: vec!["OPA WASM評価はスタブ実装です。".to_string()],
+            warnings: vec!["OPA WASM evaluation is a stub implementation.".to_string()],
             reasons: vec![],
             metadata: std::collections::HashMap::new(),
         })
     }
 }
 
-/// OPAの結果をPolicyDecisionに変換するヘルパー関数
+/// Helper function to convert OPA result to PolicyDecision
 #[allow(dead_code)]
 fn parse_opa_result(result: serde_json::Value) -> McpResult<PolicyDecision> {
-    // 基本的なフォールバック値
+    // Basic fallback values
     let mut decision = PolicyDecision {
         allow: false,
         warnings: Vec::new(),
@@ -230,21 +230,21 @@ fn parse_opa_result(result: serde_json::Value) -> McpResult<PolicyDecision> {
         metadata: std::collections::HashMap::new(),
     };
     
-    // 結果がオブジェクトでない場合
+    // If the result is not an object
     if !result.is_object() {
         return Ok(decision);
     }
     
     let result_obj = result.as_object().unwrap();
     
-    // allowフィールドを解析
+    // Parse allow field
     if let Some(allow) = result_obj.get("allow") {
         if let Some(allow_bool) = allow.as_bool() {
             decision.allow = allow_bool;
         }
     }
     
-    // warningsフィールドを解析
+    // Parse warnings field
     if let Some(warnings) = result_obj.get("warnings") {
         if let Some(warnings_arr) = warnings.as_array() {
             decision.warnings = warnings_arr
@@ -254,7 +254,7 @@ fn parse_opa_result(result: serde_json::Value) -> McpResult<PolicyDecision> {
         }
     }
     
-    // reasonsフィールドを解析
+    // Parse reasons field
     if let Some(reasons) = result_obj.get("reasons") {
         if let Some(reasons_arr) = reasons.as_array() {
             decision.reasons = reasons_arr
@@ -264,12 +264,12 @@ fn parse_opa_result(result: serde_json::Value) -> McpResult<PolicyDecision> {
         }
     }
     
-    // 追加のメタデータを解析（将来の拡張用）
+    // Parse additional metadata (for future extensions)
     if let Some(metadata) = result_obj.get("metadata") {
         if let Some(metadata_obj) = metadata.as_object() {
             for (key, value) in metadata_obj {
                 if let Some(value_str) = value.as_str() {
-                    // Value::Stringでラップする
+                    // Wrap with Value::String
                     decision.metadata.insert(key.clone(), serde_json::Value::String(value_str.to_string()));
                 }
             }
@@ -279,33 +279,33 @@ fn parse_opa_result(result: serde_json::Value) -> McpResult<PolicyDecision> {
     Ok(decision)
 }
 
-/// 強化されたスタブポリシー評価器（OPAの代わりに使用）
+/// Enhanced stub policy evaluator (used instead of OPA)
 #[derive(Default)]
 pub struct StubPolicyEvaluator {
-    // スタブ実装
+    // Stub implementation
 }
 
 impl PolicyEvaluator for StubPolicyEvaluator {
     fn evaluate(&self, input: &PolicyInput) -> McpResult<PolicyDecision> {
-        // コマンド実行ポリシー
+        // Command execution policy
         if !input.command.name.is_empty() {
             return self.evaluate_command(input);
         }
         
-        // ファイルアクセスポリシー
+        // File access policy
         if let Some(file_info) = &input.file {
             return self.evaluate_file_access(input, file_info);
         }
         
-        // ネットワークアクセスポリシー
+        // Network access policy
         if let Some(network_info) = &input.network {
             return self.evaluate_network_access(input, network_info);
         }
         
-        // デフォルトは許可（警告付き）
+        // Default is to allow (with warning)
         Ok(PolicyDecision {
             allow: true,
-            warnings: vec!["不明なリクエストタイプです。本番環境では拒否されます。".to_string()],
+            warnings: vec!["Unknown request type. Would be denied in production environment.".to_string()],
             reasons: vec![],
             metadata: Default::default(),
         })
@@ -313,45 +313,45 @@ impl PolicyEvaluator for StubPolicyEvaluator {
 }
 
 impl StubPolicyEvaluator {
-    // コマンド実行ポリシーの評価
+    // Command execution policy evaluation
     fn evaluate_command(&self, input: &PolicyInput) -> McpResult<PolicyDecision> {
         let cmd = &input.command.name;
         
-        // 許可されたコマンド
+        // Allowed commands
         let allowed_commands = [
             "ls", "echo", "cat", "grep", "find", 
             "python", "python3", "node", "npm"
         ];
         
-        // 危険なコマンド
+        // Dangerous commands
         let dangerous_commands = [
             "rm", "dd", "wget", "curl", "chmod", 
             "chown", "sudo", "su"
         ];
         
-        // 管理者かどうか
+        // Check if user is admin
         let is_admin = input.user.roles.iter().any(|r| r == "admin");
         
-        // 危険なコマンドは拒否
+        // Deny dangerous commands
         if dangerous_commands.contains(&cmd.as_str()) {
             return Ok(PolicyDecision {
                 allow: false,
                 warnings: vec![],
-                reasons: vec![format!("コマンド '{}' は危険なため禁止されています", cmd)],
+                reasons: vec![format!("Command '{}' is forbidden as it is dangerous", cmd)],
                 metadata: Default::default(),
             });
         }
         
-        // 許可されたコマンドリストにあるか管理者なら許可
+        // Allow if in allowed commands list or user is admin
         if allowed_commands.contains(&cmd.as_str()) || is_admin {
             let mut warnings = vec![];
             
             if is_admin {
-                warnings.push("管理者として実行中。すべての操作が監査されます。".to_string());
+                warnings.push("Executing as administrator. All operations are audited.".to_string());
             }
             
-            // スタブ警告
-            warnings.push("スタブポリシーエンジンを使用中のため、本番環境では使用しないでください".to_string());
+            // Stub warning
+            warnings.push("Using stub policy engine, do not use in production environment".to_string());
             
             return Ok(PolicyDecision {
                 allow: true,
@@ -361,53 +361,53 @@ impl StubPolicyEvaluator {
             });
         }
         
-        // それ以外は拒否
+        // Otherwise deny
         Ok(PolicyDecision {
             allow: false,
             warnings: vec![],
-            reasons: vec![format!("コマンド '{}' は許可リストにありません", cmd)],
+            reasons: vec![format!("Command '{}' is not in the allowed list", cmd)],
             metadata: Default::default(),
         })
     }
     
-    // ファイルアクセスポリシーの評価
+    // File access policy evaluation
     fn evaluate_file_access(&self, _input: &PolicyInput, file_info: &crate::models::FileInfo) -> McpResult<PolicyDecision> {
-        // 読み取り可能なパス
+        // Readable paths
         let readable_paths = [
             "/workspace/", "/tmp/", "/data/public/"
         ];
         
-        // 書き込み可能なパス
+        // Writable paths
         let writable_paths = [
             "/workspace/", "/tmp/"
         ];
         
-        // 実行可能なパス
+        // Executable paths
         let executable_paths = [
             "/workspace/bin/", "/usr/bin/", "/bin/"
         ];
         
-        // 禁止パス
+        // Denied paths
         let denied_paths = [
             "/etc/", "/var/", "/root/", "/home/"
         ];
         
-        // パスのチェック関数
+        // Path checking function
         let path_matches = |path: &str, pattern: &str| path.starts_with(pattern);
         
-        // 禁止パスのチェック
+        // Check denied paths
         for pattern in denied_paths.iter() {
             if path_matches(&file_info.path, pattern) {
                 return Ok(PolicyDecision {
                     allow: false,
                     warnings: vec![],
-                    reasons: vec![format!("パス '{}' へのアクセスは禁止されています", file_info.path)],
+                    reasons: vec![format!("Access to path '{}' is forbidden", file_info.path)],
                     metadata: Default::default(),
                 });
             }
         }
         
-        // モードに応じたチェック
+        // Check based on mode
         let allowed = match file_info.mode.as_str() {
             "read" => readable_paths.iter().any(|p| path_matches(&file_info.path, p)),
             "write" => writable_paths.iter().any(|p| path_matches(&file_info.path, p)),
@@ -419,11 +419,11 @@ impl StubPolicyEvaluator {
             let mut warnings = vec![];
             
             if file_info.mode == "write" {
-                warnings.push("ファイル書き込み操作は監査されます".to_string());
+                warnings.push("File write operations are audited".to_string());
             }
             
-            // スタブ警告
-            warnings.push("スタブポリシーエンジンを使用中のため、本番環境では使用しないでください".to_string());
+            // Stub warning
+            warnings.push("Using stub policy engine, do not use in production environment".to_string());
             
             Ok(PolicyDecision {
                 allow: true,
@@ -435,59 +435,59 @@ impl StubPolicyEvaluator {
             Ok(PolicyDecision {
                 allow: false,
                 warnings: vec![],
-                reasons: vec![format!("パス '{}' への '{}' アクセスは許可されていません", 
-                                      file_info.path, file_info.mode)],
+                reasons: vec![format!("'{}' access to path '{}' is not allowed", 
+                                      file_info.mode, file_info.path)],
                 metadata: Default::default(),
             })
         }
     }
     
-    // ネットワークアクセスポリシーの評価
+    // Network access policy evaluation
     fn evaluate_network_access(&self, _input: &PolicyInput, network_info: &crate::models::NetworkInfo) -> McpResult<PolicyDecision> {
-        // 許可されたホスト
+        // Allowed hosts
         let allowed_hosts = [
             "api.example.com", "cdn.example.com", "data.example.com"
         ];
         
-        // 許可されたポート
+        // Allowed ports
         let allowed_ports = [80, 443, 8080];
         
-        // 許可されたプロトコル
+        // Allowed protocols
         let allowed_protocols = ["tcp", "https"];
         
-        // ホストのチェック
+        // Check host
         let host_allowed = allowed_hosts.contains(&network_info.host.as_str());
         
-        // ポートのチェック
+        // Check port
         let port_allowed = allowed_ports.contains(&network_info.port);
         
-        // プロトコルのチェック
+        // Check protocol
         let protocol_allowed = allowed_protocols.contains(&network_info.protocol.as_str());
         
         if host_allowed && port_allowed && protocol_allowed {
             Ok(PolicyDecision {
                 allow: true,
                 warnings: vec![
-                    "ネットワークリクエストは監査されます".to_string(),
-                    "スタブポリシーエンジンを使用中のため、本番環境では使用しないでください".to_string(),
+                    "Network requests are audited".to_string(),
+                    "Using stub policy engine, do not use in production environment".to_string(),
                 ],
                 reasons: vec![],
                 metadata: Default::default(),
             })
         } else {
-            // 拒否理由を集める
+            // Collect denial reasons
             let mut reasons = vec![];
             
             if !host_allowed {
-                reasons.push(format!("ホスト '{}' へのアクセスは許可されていません", network_info.host));
+                reasons.push(format!("Access to host '{}' is not allowed", network_info.host));
             }
             
             if !port_allowed {
-                reasons.push(format!("ポート {} へのアクセスは許可されていません", network_info.port));
+                reasons.push(format!("Access to port {} is not allowed", network_info.port));
             }
             
             if !protocol_allowed {
-                reasons.push(format!("プロトコル '{}' の使用は許可されていません", network_info.protocol));
+                reasons.push(format!("Use of protocol '{}' is not allowed", network_info.protocol));
             }
             
             Ok(PolicyDecision {
@@ -506,12 +506,12 @@ mod tests {
     use crate::models::{CommandInfo, UserInfo, FileInfo, NetworkInfo};
     use std::collections::HashMap;
 
-    // スタブポリシーエバリュエータのテスト
+    // Test for stub policy evaluator
     #[test]
     fn test_stub_policy_evaluator() {
         let evaluator = StubPolicyEvaluator::default();
         
-        // 安全なコマンドのテスト
+        // Test for safe command
         let input_safe = PolicyInput {
             user: UserInfo {
                 id: "user1".to_string(),
@@ -535,7 +535,7 @@ mod tests {
         assert!(result_safe.allow);
         assert!(!result_safe.warnings.is_empty());
         
-        // 危険なコマンドのテスト
+        // Test for dangerous command
         let mut input_dangerous = input_safe.clone();
         input_dangerous.command.name = "rm".to_string();
         
@@ -544,12 +544,12 @@ mod tests {
         assert!(!result_dangerous.reasons.is_empty());
     }
 
-    // ポリシーエンジンのテスト
+    // Test for policy engine
     #[test]
     fn test_policy_engine_with_stub() {
         let engine = PolicyEngine::new();
         
-        // 安全なコマンドのテスト
+        // Test for safe command
         let input_safe = PolicyInput {
             user: UserInfo {
                 id: "user1".to_string(),
@@ -572,7 +572,7 @@ mod tests {
         let result_safe = engine.check_command_execution(&input_safe);
         assert!(result_safe.is_ok());
         
-        // 危険なコマンドのテスト
+        // Test for dangerous command
         let mut input_dangerous = input_safe.clone();
         input_dangerous.command.name = "rm".to_string();
         
@@ -580,12 +580,12 @@ mod tests {
         assert!(result_dangerous.is_err());
     }
     
-    // ファイルアクセスポリシーのテスト
+    // Test for file access policy
     #[test]
     fn test_file_access_policy() {
         let engine = PolicyEngine::new();
         
-        // 許可されたファイル読み取り
+        // Allowed file read
         let input_read_allowed = PolicyInput {
             user: UserInfo::default(),
             command: CommandInfo::default(),
@@ -600,7 +600,7 @@ mod tests {
         
         assert!(engine.check_file_access(&input_read_allowed).is_ok());
         
-        // 禁止されたファイル読み取り
+        // Denied file read
         let input_read_denied = PolicyInput {
             user: UserInfo::default(),
             command: CommandInfo::default(),
@@ -616,12 +616,12 @@ mod tests {
         assert!(engine.check_file_access(&input_read_denied).is_err());
     }
     
-    // ネットワークアクセスポリシーのテスト
+    // Test for network access policy
     #[test]
     fn test_network_access_policy() {
         let engine = PolicyEngine::new();
         
-        // 許可されたネットワークアクセス
+        // Allowed network access
         let input_network_allowed = PolicyInput {
             user: UserInfo::default(),
             command: CommandInfo::default(),
@@ -637,7 +637,7 @@ mod tests {
         
         assert!(engine.check_network_access(&input_network_allowed).is_ok());
         
-        // 禁止されたネットワークアクセス
+        // Denied network access
         let input_network_denied = PolicyInput {
             user: UserInfo::default(),
             command: CommandInfo::default(),

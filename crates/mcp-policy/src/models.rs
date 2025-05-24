@@ -1,109 +1,109 @@
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 
-/// ポリシー評価の入力データ
+/// Policy evaluation input data
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PolicyInput {
-    /// ユーザー情報
+    /// User information
     #[serde(default)]
     pub user: UserInfo,
-    /// 実行コマンド情報
+    /// Command execution information
     #[serde(default)]
     pub command: CommandInfo,
-    /// ファイルアクセス情報
+    /// File access information
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file: Option<FileInfo>,
-    /// ネットワークアクセス情報
+    /// Network access information
     #[serde(skip_serializing_if = "Option::is_none")]
     pub network: Option<NetworkInfo>,
-    /// リソース制限情報
+    /// Resource limit information
     #[serde(default)]
     pub resources: ResourceLimits,
-    /// コンテキスト情報（追加のメタデータ）
+    /// Context information (additional metadata)
     #[serde(default)]
     pub context: HashMap<String, serde_json::Value>,
 }
 
-/// ユーザー情報
+/// User information
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct UserInfo {
-    /// ユーザーID
+    /// User ID
     pub id: String,
-    /// テナントID
+    /// Tenant ID
     pub tenant_id: String,
-    /// ロール一覧
+    /// List of roles
     #[serde(default)]
     pub roles: Vec<String>,
-    /// 追加の属性
+    /// Additional attributes
     #[serde(default)]
     pub attributes: HashMap<String, String>,
 }
 
-/// コマンド実行情報
+/// Command execution information
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CommandInfo {
-    /// コマンド名
+    /// Command name
     pub name: String,
-    /// コマンド引数
+    /// Command arguments
     #[serde(default)]
     pub args: Vec<String>,
-    /// 作業ディレクトリ
+    /// Working directory
     #[serde(default)]
     pub cwd: String,
-    /// 環境変数
+    /// Environment variables
     #[serde(default)]
     pub env: HashMap<String, String>,
 }
 
-/// ファイルアクセス情報
+/// File access information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FileInfo {
-    /// ファイルパス
+    /// File path
     pub path: String,
-    /// アクセスモード（"read", "write", "execute"）
+    /// Access mode ("read", "write", "execute")
     pub mode: String,
 }
 
-/// ネットワークアクセス情報
+/// Network access information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkInfo {
-    /// 宛先ホスト
+    /// Destination host
     pub host: String,
-    /// 宛先ポート
+    /// Destination port
     pub port: u16,
-    /// プロトコル（"tcp", "udp"）
+    /// Protocol ("tcp", "udp")
     pub protocol: String,
 }
 
-/// リソース制限情報
+/// Resource limit information
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ResourceLimits {
-    /// CPU時間の制限（ミリ秒）
+    /// CPU time limit (milliseconds)
     #[serde(default)]
     pub cpu_time_ms: Option<u64>,
-    /// メモリ使用量の制限（キロバイト）
+    /// Memory usage limit (kilobytes)
     #[serde(default)]
     pub memory_kb: Option<u64>,
-    /// ファイル数の制限
+    /// File count limit
     #[serde(default)]
     pub max_files: Option<u32>,
-    /// プロセス数の制限
+    /// Process count limit
     #[serde(default)]
     pub max_processes: Option<u32>,
 }
 
-/// ポリシー評価の決定結果
+/// Policy evaluation decision result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PolicyDecision {
-    /// 許可されるかどうか
+    /// Whether the action is allowed
     pub allow: bool,
-    /// 警告メッセージ（許可されるが警告あり）
+    /// Warning messages (allowed but with warnings)
     #[serde(default)]
     pub warnings: Vec<String>,
-    /// 拒否の理由（拒否された場合）
+    /// Denial reasons (if rejected)
     #[serde(default)]
     pub reasons: Vec<String>,
-    /// 追加のメタデータ
+    /// Additional metadata
     #[serde(default)]
     pub metadata: HashMap<String, serde_json::Value>,
 } 

@@ -7,7 +7,7 @@ use std::sync::Arc;
 use tracing::info;
 use std::fmt;
 
-/// サンドボックス内でコマンドを実行するエグゼキュータ
+/// Executor for running commands in a sandbox
 #[derive(Clone)]
 pub struct CommandExecutor {
     runner: Arc<SandboxRunner>,
@@ -25,16 +25,16 @@ impl fmt::Debug for CommandExecutor {
 }
 
 impl CommandExecutor {
-    /// 新しいCommandExecutorを作成
+    /// Create a new CommandExecutor
     pub fn new() -> Self {
         Self {
             runner: Arc::new(SandboxRunner::new()),
-            default_timeout: 30, // 30秒
+            default_timeout: 30, // 30 seconds
             default_sandbox_config: SandboxConfig::default(),
         }
     }
 
-    /// デフォルト設定を変更したExecutorを作成
+    /// Create an Executor with modified default settings
     pub fn with_config(timeout: u32, sandbox_config: SandboxConfig) -> Self {
         Self {
             runner: Arc::new(SandboxRunner::new()),
@@ -43,7 +43,7 @@ impl CommandExecutor {
         }
     }
 
-    /// コマンドを実行
+    /// Execute a command
     pub async fn execute(
         &self,
         command: &str,
@@ -56,16 +56,16 @@ impl CommandExecutor {
         
         let cwd = cwd.map(PathBuf::from);
         
-        info!("コマンド実行: {} {:?}", command, args);
+        info!("Executing command: {} {:?}", command, args);
         
-        // コマンドが空の場合はエラー
+        // Error if command is empty
         if command.is_empty() {
-            return Err(McpError::InvalidRequest("コマンドが指定されていません".to_string()));
+            return Err(McpError::InvalidRequest("Command is not specified".to_string()));
         }
         
-        // タイムアウトが0の場合はエラー
+        // Error if timeout is 0
         if timeout == 0 {
-            return Err(McpError::InvalidRequest("タイムアウトは1秒以上で指定してください".to_string()));
+            return Err(McpError::InvalidRequest("Timeout must be at least 1 second".to_string()));
         }
         
         let request = ExecutionRequest {
@@ -80,7 +80,7 @@ impl CommandExecutor {
         self.runner.run(request).await
     }
     
-    /// サンドボックス設定を更新したExecutorを作成
+    /// Create an Executor with updated sandbox configuration
     pub fn with_sandbox_config(&self, config: SandboxConfig) -> Self {
         Self {
             runner: self.runner.clone(),
@@ -89,7 +89,7 @@ impl CommandExecutor {
         }
     }
     
-    /// タイムアウト設定を更新したExecutorを作成
+    /// Create an Executor with updated timeout setting
     pub fn with_timeout(&self, timeout: u32) -> Self {
         Self {
             runner: self.runner.clone(),
