@@ -83,9 +83,10 @@ pub fn init_metrics() {
         // Process metrics are only added on Linux (using feature="process")
         #[cfg(target_os = "linux")]
         {
-            if let Err(e) = prometheus::process_collector::ProcessCollector::new()
-                .unwrap()
-                .register_with(&registry) {
+            if let Err(e) = prometheus::process_collector::ProcessCollector::new(
+                prometheus::process_collector::ProcessCollector::pid_t::from_inner(std::process::id() as i32),
+                "mcp_gateway"
+            ).register_with(&registry) {
                 error!("Failed to register process metrics: {}", e);
             }
         }

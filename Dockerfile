@@ -3,6 +3,11 @@ FROM rust:latest AS builder
 
 WORKDIR /app
 
+# 必要なツールのインストール
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/*
+
 # 依存関係のみを先にビルドしてキャッシュを活用
 COPY Cargo.toml Cargo.lock ./
 COPY crates/mcp-common/Cargo.toml ./crates/mcp-common/
@@ -16,6 +21,16 @@ RUN mkdir -p crates/mcp-common/src crates/mcp-gateway/src crates/mcp-policy/src 
 # ソースコードをコピーしてビルド
 COPY proto ./proto
 COPY crates ./crates
+
+# 必要なパッチを適用（エラー修正）
+RUN sed -i 's/ProcessCollector::new()\n                .unwrap()/ProcessCollector::new(\n                prometheus::process_collector::ProcessCollector::pid_t::from_inner(std::process::id() as i32),\n                "mcp_gateway"\n            )/g' crates/mcp-gateway/src/metrics.rs \
+    && sed -i 's/use mcp_common::{McpError, IntoStatus, ErrorResponse, ErrorDetail};/use mcp_common::{McpError, grpc::IntoStatus, error::{ErrorResponse, ErrorDetail}};/g' crates/mcp-gateway/src/error.rs \
+    && sed -i 's/use mcp_common::{McpError, McpResult};/use mcp_common::{McpError, error::McpResult};/g' crates/mcp-gateway/src/service.rs \
+    && sed -i 's/use mcp_policy::engine::PolicyEngine;/use mcp_policy::PolicyEngine;/g' crates/mcp-gateway/src/service.rs \
+    && sed -i 's/use mcp_policy::models::{CommandInfo, PolicyInput, UserInfo};/use mcp_policy::{CommandInfo, PolicyInput, UserInfo};/g' crates/mcp-gateway/src/service.rs \
+    && sed -i 's/use mcp_policy::engine::PolicyEngine;/use mcp_policy::PolicyEngine;/g' crates/mcp-gateway/src/lib.rs
+
+# ビルド実行
 RUN cargo build --release
 
 # 必要なバイナリを取り出す

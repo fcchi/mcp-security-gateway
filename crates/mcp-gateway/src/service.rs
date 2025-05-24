@@ -5,9 +5,9 @@ use crate::proto::{
 };
 use crate::error::ErrorHandler;
 use crate::metrics;
-use mcp_common::{McpError, McpResult};
-use mcp_policy::engine::PolicyEngine;
-use mcp_policy::models::{CommandInfo, PolicyInput, UserInfo};
+use mcp_common::{McpError, error::McpResult};
+use mcp_policy::PolicyEngine;
+use mcp_policy::{CommandInfo, PolicyInput, UserInfo};
 use mcp_sandbox::CommandExecutor;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -16,6 +16,10 @@ use tokio_stream::wrappers::ReceiverStream;
 use tonic::{Request, Response, Status};
 use tracing::{debug, info};
 use uuid::Uuid;
+use dashmap::DashMap;
+use tokio::sync::Mutex;
+use once_cell::sync::Lazy;
+use chrono::Utc;
 
 /// MCPサービスの実装
 #[derive(Debug)]
@@ -24,8 +28,8 @@ pub struct McpServiceImpl {
     command_executor: CommandExecutor,
     start_time: SystemTime,
     // タスク状態格納用（本実装ではRedis/PostgreSQLなどに置き換える）
-    tasks: Arc<dashmap::DashMap<String, proto::TaskInfo>>,
-    results: Arc<dashmap::DashMap<String, proto::TaskResult>>,
+    tasks: Arc<DashMap<String, proto::TaskInfo>>,
+    results: Arc<DashMap<String, proto::TaskResult>>,
 }
 
 impl McpServiceImpl {
@@ -39,8 +43,8 @@ impl McpServiceImpl {
             policy_engine,
             command_executor,
             start_time,
-            tasks: Arc::new(dashmap::DashMap::new()),
-            results: Arc::new(dashmap::DashMap::new()),
+            tasks: Arc::new(DashMap::new()),
+            results: Arc::new(DashMap::new()),
         }
     }
 
