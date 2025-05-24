@@ -6,7 +6,6 @@ use prometheus::{
 };
 use std::sync::Once;
 use std::time::Instant;
-use tracing::error;
 
 static METRICS_INIT: Once = Once::new();
 static mut REGISTRY: Option<Registry> = None;
@@ -83,12 +82,11 @@ pub fn init_metrics() {
         // Process metrics are only added on Linux (using feature="process")
         #[cfg(target_os = "linux")]
         {
-            if let Err(e) = prometheus::process_collector::ProcessCollector::new(
+            let _ = prometheus::process_collector::ProcessCollector::new(
                 prometheus::process_collector::ProcessCollector::pid_t::from_inner(std::process::id() as i32),
                 "mcp_gateway"
-            ).register_with(&registry) {
-                error!("Failed to register process metrics: {}", e);
-            }
+            ).register_with(&registry);
+            // エラーが発生しても無視
         }
 
         // Save to global variables

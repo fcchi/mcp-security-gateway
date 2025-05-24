@@ -1,16 +1,7 @@
-use std::time::Duration;
-use anyhow::{Context, Result};
-// OpenTelemetry関連のインポートを一時的にコメントアウト
-// use opentelemetry::propagation::TextMapPropagator;
-// use opentelemetry_sdk::propagation::TraceContextPropagator;
-// use opentelemetry_sdk::trace::{self, Sampler};
-// use opentelemetry_sdk::Resource;
-// use opentelemetry::KeyValue;
-// use opentelemetry_otlp::WithExportConfig;
-use tracing::info;
-use tracing_subscriber::prelude::*;
+use anyhow::Result;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use tracing_subscriber::{EnvFilter, fmt};
-// use tracing_opentelemetry::OpenTelemetryLayer;
+use tracing::info;
 
 /// トレーシングモジュール
 ///

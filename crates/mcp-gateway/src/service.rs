@@ -17,9 +17,6 @@ use tonic::{Request, Response, Status};
 use tracing::{debug, info};
 use uuid::Uuid;
 use dashmap::DashMap;
-use tokio::sync::Mutex;
-use once_cell::sync::Lazy;
-use chrono::Utc;
 
 /// MCPサービスの実装
 #[derive(Debug)]
