@@ -247,6 +247,7 @@ Priority tasks for the future:
 
 ## Recent Updates
 
+- **2025-05-25**: Applied GitFlow branching strategy with `main` and `develop` branches according to the Development Guide.
 - **2025-05-24**: Completed translation of all Japanese comments to English in the codebase (excluding docs directory).
 
 ## License
