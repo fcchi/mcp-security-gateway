@@ -1,5 +1,5 @@
 # ビルドステージ
-FROM rust:1.77-slim AS builder
+FROM rust:latest AS builder
 
 WORKDIR /app
 

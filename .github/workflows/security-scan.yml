@@ -13,7 +13,7 @@ jobs:
     name: Rust Dependencies Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Install cargo-audit
         run: cargo install cargo-audit
@@ -25,7 +25,7 @@ jobs:
     name: Trivy Container Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Build Docker image
         run: docker build -t mcp-security-gateway:${{ github.sha }} .
@@ -47,26 +47,27 @@ jobs:
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
 
-  codeql-scan:
-    name: CodeQL Analysis
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: 'rust'
-      
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler bubblewrap libseccomp-dev
-      
-      - name: Build with Cargo
-        run: cargo build
-      
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2 
+# CodeQLはRustをサポートしていないため、このジョブは無効化されています
+# codeql-scan:
+#   name: CodeQL Analysis
+#   runs-on: ubuntu-latest
+#   permissions:
+#     security-events: write
+#   steps:
+#     - uses: actions/checkout@v4
+#     
+#     - name: Initialize CodeQL
+#       uses: github/codeql-action/init@v3
+#       with:
+#         languages: 'cpp'
+#     
+#     - name: Install dependencies
+#       run: |
+#         sudo apt-get update
+#         sudo apt-get install -y protobuf-compiler bubblewrap libseccomp-dev
+#     
+#     - name: Build with Cargo
+#       run: cargo build
+#     
+#     - name: Perform CodeQL Analysis
+#       uses: github/codeql-action/analyze@v3 
