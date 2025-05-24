@@ -5,9 +5,8 @@ use crate::proto::{
 };
 use crate::error::ErrorHandler;
 use crate::metrics;
-use mcp_common::{McpError, error::McpResult};
-use mcp_policy::PolicyEngine;
-use mcp_policy::{CommandInfo, PolicyInput, UserInfo};
+use mcp_common::{McpError, McpResult};
+use mcp_policy::{PolicyEngine, CommandInfo, PolicyInput, UserInfo};
 use mcp_sandbox::CommandExecutor;
 use std::collections::HashMap;
 use std::sync::Arc;

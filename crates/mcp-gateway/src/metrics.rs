@@ -79,15 +79,16 @@ pub fn init_metrics() {
             .unwrap();
         registry.register(Box::new(error_counter.clone())).unwrap();
 
-        // Process metrics are only added on Linux (using feature="process")
+        // Process metrics are conditionally registered
+        // Process collector disabled for now due to compatibility issues
+        /*
         #[cfg(target_os = "linux")]
         {
-            let _ = prometheus::process_collector::ProcessCollector::new(
-                prometheus::process_collector::ProcessCollector::pid_t::from_inner(std::process::id() as i32),
-                "mcp_gateway"
-            ).register_with(&registry);
-            // エラーが発生しても無視
+            if let Ok(collector) = prometheus::process_collector::ProcessCollector::for_self() {
+                let _ = collector.register(registry.clone());
+            }
         }
+        */
 
         // Save to global variables
         unsafe {

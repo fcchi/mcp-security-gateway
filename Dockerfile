@@ -22,13 +22,11 @@ RUN mkdir -p crates/mcp-common/src crates/mcp-gateway/src crates/mcp-policy/src 
 COPY proto ./proto
 COPY crates ./crates
 
-# 必要なパッチを適用（エラー修正）
-RUN sed -i 's/ProcessCollector::new()\n                .unwrap()/ProcessCollector::new(\n                prometheus::process_collector::ProcessCollector::pid_t::from_inner(std::process::id() as i32),\n                "mcp_gateway"\n            )/g' crates/mcp-gateway/src/metrics.rs \
-    && sed -i 's/use mcp_common::{McpError, IntoStatus, ErrorResponse, ErrorDetail};/use mcp_common::{McpError, grpc::IntoStatus, error::{ErrorResponse, ErrorDetail}};/g' crates/mcp-gateway/src/error.rs \
-    && sed -i 's/use mcp_common::{McpError, McpResult};/use mcp_common::{McpError, error::McpResult};/g' crates/mcp-gateway/src/service.rs \
-    && sed -i 's/use mcp_policy::engine::PolicyEngine;/use mcp_policy::PolicyEngine;/g' crates/mcp-gateway/src/service.rs \
-    && sed -i 's/use mcp_policy::models::{CommandInfo, PolicyInput, UserInfo};/use mcp_policy::{CommandInfo, PolicyInput, UserInfo};/g' crates/mcp-gateway/src/service.rs \
-    && sed -i 's/use mcp_policy::engine::PolicyEngine;/use mcp_policy::PolicyEngine;/g' crates/mcp-gateway/src/lib.rs
+# メトリクスのProcessCollector部分をコメントアウト
+RUN sed -i 's/\s*#\[cfg(target_os = "linux")].*/        \/\/ Process metrics disabled for Docker build/g' crates/mcp-gateway/src/metrics.rs \
+    && sed -i '87,91d' crates/mcp-gateway/src/metrics.rs \
+    && sed -i 's/use mcp_common::{McpError, grpc::IntoStatus, error::{ErrorResponse, ErrorDetail}};/use mcp_common::{McpError, IntoStatus, ErrorResponse, ErrorDetail};/g' crates/mcp-gateway/src/error.rs \
+    && sed -i 's/use mcp_common::{McpError, error::McpResult};/use mcp_common::{McpError, McpResult};/g' crates/mcp-gateway/src/service.rs
 
 # ビルド実行
 RUN cargo build --release

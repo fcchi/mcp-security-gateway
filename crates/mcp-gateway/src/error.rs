@@ -1,6 +1,6 @@
 //! Global error handling for gRPC services
 
-use mcp_common::{McpError, grpc::IntoStatus, error::{ErrorResponse, ErrorDetail}};
+use mcp_common::{McpError, IntoStatus, ErrorResponse, ErrorDetail};
 use tonic::{Response, Status};
 use tracing::{error, warn, debug};
 use std::sync::atomic::{AtomicU64, Ordering};
