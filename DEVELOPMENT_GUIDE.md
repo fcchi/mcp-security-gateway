@@ -1,142 +1,142 @@
-# MCP Security Gateway 開発ガイド
+# MCP Security Gateway Development Guide
 
-このドキュメントでは、MCP Security Gatewayプロジェクトの開発作業に関するガイドラインを提供します。
+This document provides guidelines for development work on the MCP Security Gateway project.
 
-## 目次
+## Table of Contents
 
-1. [Git ワークフロー](#git-ワークフロー)
-2. [ブランチ戦略](#ブランチ戦略)
-3. [コミットメッセージのガイドライン](#コミットメッセージのガイドライン)
-4. [プルリクエストプロセス](#プルリクエストプロセス)
-5. [リリースプロセス](#リリースプロセス)
-6. [コード品質](#コード品質)
+1. [Git Workflow](#git-workflow)
+2. [Branch Strategy](#branch-strategy)
+3. [Commit Message Guidelines](#commit-message-guidelines)
+4. [Pull Request Process](#pull-request-process)
+5. [Release Process](#release-process)
+6. [Code Quality](#code-quality)
 
-## Git ワークフロー
+## Git Workflow
 
-当プロジェクトでは、GitFlow風のワークフローを採用しています。
+In this project, we use a GitFlow-like workflow.
 
-### 初期設定
+### Initial Setup
 
-リモートリポジトリをクローンする場合：
+To clone the remote repository:
 
 ```bash
-# リポジトリをクローン
+# Clone the repository
 git clone https://github.com/username/mcp-security-gateway.git
 cd mcp-security-gateway
 
-# 依存関係をインストール
+# Install dependencies
 cargo build
 ```
 
-リモートリポジトリを追加する場合：
+To add a remote repository:
 
 ```bash
-# 既存のローカルリポジトリにリモートを追加
+# Add a remote to an existing local repository
 git remote add origin https://github.com/username/mcp-security-gateway.git
 
-# リモートの変更をプル
+# Pull changes from the remote
 git pull origin main
 ```
 
-## ブランチ戦略
+## Branch Strategy
 
-以下のブランチを使用しています：
+We use the following branches:
 
-- **main**: 本番環境用の安定コード
-- **develop**: 次回リリース用の開発コード
-- **feature/X**: 個別機能の開発 (`feature/milestone7-beta-release` など)
-- **bugfix/X**: バグ修正
-- **release/X.Y.Z**: リリース準備 (`release/0.2.0` など)
-- **hotfix/X**: 緊急修正
+- **main**: Stable code for production environment
+- **develop**: Development code for the next release
+- **feature/X**: Development of individual features (`feature/milestone7-beta-release` etc.)
+- **bugfix/X**: Bug fixes
+- **release/X.Y.Z**: Release preparation (`release/0.2.0` etc.)
+- **hotfix/X**: Emergency fixes
 
-### 新機能開発の場合
+### For New Feature Development
 
 ```bash
-# developから最新の変更を取得
+# Get the latest changes from develop
 git checkout develop
 git pull origin develop
 
-# 機能ブランチを作成
+# Create a feature branch
 git checkout -b feature/new-feature-name
 
-# (開発作業)
+# (Development work)
 
-# 変更をコミット
+# Commit changes
 git add .
-git commit -m "機能の追加: 〇〇機能の実装"
+git commit -m "Feature addition: 〇〇 feature implementation"
 
-# developにマージする前に、最新変更を取り込む
+# Before merging into develop, get the latest changes
 git checkout develop
 git pull origin develop
 git checkout feature/new-feature-name
 git rebase develop
 
-# developにマージ
+# Merge into develop
 git checkout develop
 git merge --no-ff feature/new-feature-name
 git push origin develop
 
-# 機能ブランチを削除（オプション）
+# Delete feature branch (optional)
 git branch -d feature/new-feature-name
 ```
 
-## コミットメッセージのガイドライン
+## Commit Message Guidelines
 
-コミットメッセージは以下のフォーマットに従ってください：
+Commit messages should follow this format:
 
 ```
-[種別]: 要約（50文字以内）
+[Type]: Summary (50 characters or less)
 
-詳細な説明（オプション、72文字で改行）
+Detailed description (optional, 72 characters per line)
 ```
 
-種別の例:
-- **機能**: 新機能
-- **修正**: バグ修正
-- **改善**: 既存機能の改善
-- **リファクタ**: 機能変更のないコード変更
-- **文書**: ドキュメントのみの変更
-- **テスト**: テストの追加・修正
-- **設定**: CI/CD、ビルド設定の変更
+Example types:
+- **Feature**: New feature
+- **Fix**: Bug fix
+- **Improvement**: Improvement of existing feature
+- **Refactor**: Code change without feature change
+- **Documentation**: Only change in documentation
+- **Test**: Addition or correction of test
+- **Config**: Change in CI/CD, build configuration
 
-例:
+Example:
 ```
-機能: OPAポリシーエンジンとの統合
+Feature: OPA policy engine integration
 
-- Regoポリシーの動的読み込み機能を追加
-- ポリシー評価のキャッシュ機構を実装
-- エラーハンドリングの改善
+- Added dynamic loading of Rego policy
+- Implemented policy evaluation caching mechanism
+- Improved error handling
 ```
 
-## プルリクエストプロセス
+## Pull Request Process
 
-1. 機能ブランチで開発を完了する
-2. テストを実行し、コードスタイルを確認
+1. Complete development in a feature branch
+2. Run tests and check code style
    ```bash
    cargo test
    cargo fmt --all -- --check
    cargo clippy
    ```
-3. 変更を説明するPRを作成
-4. コードレビューを受ける
-5. CIパイプラインが成功することを確認
-6. マージ承認を得る
+3. Create a PR explaining the changes
+4. Receive code review
+5. Ensure CI pipeline succeeds
+6. Get merge approval
 
-## リリースプロセス
+## Release Process
 
-1. developからリリースブランチを作成
+1. Create a release branch from develop
    ```bash
    git checkout develop
    git checkout -b release/0.2.0
    ```
 
-2. バージョン番号を更新
-   - `Cargo.toml`のversion
-   - CHANGELOGの更新
+2. Update version number
+   - `Cargo.toml` version
+   - CHANGELOG update
 
-3. 最終テストとQA
+3. Final testing and QA
 
-4. mainへのマージ
+4. Merge into main
    ```bash
    git checkout main
    git merge --no-ff release/0.2.0
@@ -144,40 +144,40 @@ git branch -d feature/new-feature-name
    git push origin main --tags
    ```
 
-5. developへのマージ
+5. Merge into develop
    ```bash
    git checkout develop
    git merge --no-ff release/0.2.0
    git push origin develop
    ```
 
-## コード品質
+## Code Quality
 
-- コミット前に以下を実行
+- Run the following before committing
   ```bash
   cargo test
   cargo fmt
   cargo clippy
   ```
 
-- コードカバレッジの確認
+- Check code coverage
   ```bash
   cargo tarpaulin
   ```
 
-- セキュリティチェック
+- Security check
   ```bash
   cargo audit
   ```
 
 ## CI/CD
 
-GitHub Actionsワークフローは以下を自動化しています：
+GitHub Actions workflow automates the following:
 
-- コンパイルテスト
-- 単体テスト実行
-- コードスタイルチェック
-- 静的解析
-- セキュリティスキャン
-- コードカバレッジレポート
-- ドキュメント生成 
+- Compile test
+- Unit test execution
+- Code style check
+- Static analysis
+- Security scan
+- Code coverage report
+- Document generation 
