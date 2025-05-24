@@ -1,0 +1,38 @@
+[package]
+name = "mcp-gateway"
+version = "0.1.0"
+edition = "2021"
+authors = ["MCP Team"]
+license = "Apache-2.0"
+description = "MCPセキュリティゲートウェイのメインサービス：gRPCとRESTインターフェースを提供"
+
+[dependencies]
+mcp-common = { path = "../mcp-common" }
+mcp-policy = { path = "../mcp-policy" }
+mcp-sandbox = { path = "../mcp-sandbox" }
+tokio = { workspace = true }
+tonic = { workspace = true }
+prost = { workspace = true }
+axum = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+clap = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+dashmap = { workspace = true }
+prometheus = { workspace = true }
+tokio-stream = "0.1.17"
+once_cell = "1.19.0"
+opentelemetry = { workspace = true }
+opentelemetry-otlp = { workspace = true }
+tracing-opentelemetry = { workspace = true }
+
+[build-dependencies]
+tonic-build = "0.10.2" 
+
+[dev-dependencies]
+serial_test = "3.2.0"

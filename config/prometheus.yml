@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# アラートマネージャの設定
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# アラートルールファイルを読み込む
+rule_files:
+  - "/etc/prometheus/alert_rules.yml"
+
+scrape_configs:
+  - job_name: "mcp-gateway"
+    static_configs:
+      - targets: ["mcp-gateway:9090"]
+    metrics_path: "/metrics" 

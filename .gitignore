@@ -1,0 +1,75 @@
+# Rust向け.gitignore
+
+# コンパイル生成物
+/target/
+**/*.rs.bk
+
+# デバッグ生成物
+*.pdb
+
+# rustfmt生成物
+**/*.rs.fmt
+
+# 依存関係のロックファイル（必要に応じてコメントアウト）
+# Cargo.lock
+
+# IDE関連
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS固有のファイル
+.DS_Store
+Thumbs.db
+
+# ログファイル
+*.log
+/logs/
+
+# ドキュメント
+/docs/
+/docs/book/
+
+# 作業ディレクトリ
+/workspace/
+
+# 環境変数ファイル
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+*.env
+
+# ビルドディレクトリ
+/build/
+/dist/
+
+# キャッシュ
+.cargo-cache/
+.cache/
+
+# その他一時ファイル
+*.tmp
+*.bak
+
+# 証明書と秘密鍵
+*.pem
+*.key
+*.cert
+*.crt
+
+# テストカバレッジレポート
+/coverage/
+*.lcov
+
+# バイナリファイル
+*.bin
+*.exe
+*.dll
+*.so
+*.dylib
+
+# カスタムスクリプトの出力
+/output/ 

@@ -1,0 +1,16 @@
+[package]
+name = "mcp-common"
+version = "0.1.0"
+edition = "2021"
+authors = ["MCP Team"]
+license = "Apache-2.0"
+description = "MCPセキュリティゲートウェイの共通ユーティリティと型定義"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+tonic = { workspace = true } 

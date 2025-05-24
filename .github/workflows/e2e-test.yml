@@ -1,0 +1,63 @@
+name: E2E Tests
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 毎日UTCの午前0時に実行
+  workflow_dispatch:  # 手動で実行可能
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        # システム依存パッケージのインストール
+        sudo apt-get update
+        sudo apt-get install -y protobuf-compiler bubblewrap libseccomp-dev
+        
+        # grpcurlのインストール
+        wget https://github.com/fullstorydev/grpcurl/releases/download/v1.8.7/grpcurl_1.8.7_linux_x86_64.tar.gz
+        tar -xzf grpcurl_1.8.7_linux_x86_64.tar.gz
+        sudo mv grpcurl /usr/local/bin/
+        
+        # Pythonパッケージのインストール
+        pip install pexpect
+    
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-e2e-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Build
+      run: cargo build --verbose
+    
+    - name: Run e2e tests
+      run: |
+        cd tests/e2e
+        python ls_flow_test.py
+    
+    - name: Upload test logs
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: e2e-test-logs
+        path: |
+          tests/e2e/*.log
+          /tmp/mcp-*.log
+        retention-days: 7 

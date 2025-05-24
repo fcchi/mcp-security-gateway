@@ -1,0 +1,57 @@
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: '🚀 新機能'
+    labels:
+      - 'type:feature'
+      - 'area:api'
+      - 'area:gateway'
+      - 'area:policy'
+      - 'area:sandbox'
+      - 'area:security'
+      - 'area:observability'
+  - title: '🛠️ 改善'
+    labels:
+      - 'type:improvement'
+      - 'area:performance'
+      - 'area:deployment'
+  - title: '🐛 バグ修正'
+    labels:
+      - 'type:bugfix'
+      - 'type:fix'
+  - title: '📚 ドキュメント'
+    labels:
+      - 'type:docs'
+      - 'area:docs'
+  - title: '🧰 メンテナンス'
+    labels:
+      - 'type:chore'
+      - 'type:ci'
+      - 'type:refactor'
+      - 'type:test'
+  - title: '🔒 セキュリティ'
+    labels:
+      - 'type:security'
+      - 'area:security'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+
+version-resolver:
+  major:
+    labels:
+      - 'version:major'
+  minor:
+    labels:
+      - 'version:minor'
+  patch:
+    labels:
+      - 'version:patch'
+  default: patch
+
+template: |
+  ## 変更内容
+
+  $CHANGES
+
+  **フルチェンジログ**: https://github.com/username/mcp-security-gateway/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION 

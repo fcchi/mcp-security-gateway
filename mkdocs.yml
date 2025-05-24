@@ -1,0 +1,77 @@
+site_name: MCP Security Gateway
+site_description: "AI/MLモデルと外部システム間の安全な通信を実現するセキュリティアダプター"
+site_url: https://fcchi.github.io/mcp-security-gateway/
+site_author: MCP Team
+repo_url: https://github.com/fcchi/mcp-security-gateway
+edit_uri: edit/main/docs/
+
+# テーマ設定
+theme:
+  name: material
+  language: ja
+  palette:
+    primary: indigo
+    accent: blue
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - content.code.copy
+    - content.tabs.link
+
+# 拡張機能
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed
+  - pymdownx.details
+
+# プラグイン
+plugins:
+  - search
+  - mkdocstrings
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+
+# ドキュメント構造
+nav:
+  - ホーム: index.md
+  - アーキテクチャ:
+    - 概要: architecture/ARCHITECTURE_OVERVIEW.md
+    - ユーザーガイド: architecture/USER_GUIDE.md
+  - API:
+    - MCPプロトコル仕様: api/MCP_PROTOCOL.md
+    - APIリファレンス: api/API_REFERENCE.md
+  - セキュリティ:
+    - セキュリティ機能: security/SECURITY_FEATURES.md
+    - 脅威モデル: security/THREAT_MODEL.md
+    - サンドボックス脅威モデル: security/SANDBOX_THREAT_MODEL.md
+    - OPA統合: security/OPA_INTEGRATION.md
+    - OPA統合課題: security/OPA_INTEGRATION_ISSUES.md
+  - 運用:
+    - デプロイガイド: operations/DEPLOY_GUIDE.md
+    - 運用手順書: operations/OPERATIONS_RUNBOOK.md
+    - パフォーマンスSLO: operations/PERFORMANCE_SLO.md
+  - 品質:
+    - エラー処理: quality/ERROR_HANDLING.md
+    - テスト戦略: quality/TEST_STRATEGY.md
+  - 可観測性:
+    - 可観測性: observability/OBSERVABILITY.md
+  - メタ情報:
+    - 用語集: meta/GLOSSARY.md
+    - 変更履歴: meta/CHANGELOG.md
+    - バージョニングとアップグレード: meta/VERSIONING_UPGRADE.md
+    - 実装ロードマップ: meta/ROADMAP.md 

@@ -1,0 +1,167 @@
+# MCP Security Gateway Helm チャートのデフォルト値
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/fcchi/mcp-security-gateway
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # サービスアカウントを作成するかどうか
+  create: true
+  # annotations to add to the service account
+  annotations: {}
+  # サービスアカウント名（指定がなければname templateから生成）
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+# コンテナのセキュリティコンテキスト
+securityContext:
+  capabilities:
+    add:
+      - SYS_ADMIN
+  allowPrivilegeEscalation: true
+  seccompProfile:
+    type: RuntimeDefault
+
+service:
+  type: ClusterIP
+  httpPort: 8080
+  grpcPort: 8081
+  metricsPort: 9090
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: mcp-gateway.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# MCPセキュリティゲートウェイの設定
+config:
+  logLevel: info
+  sandboxPoolSize: 32
+  maxConcurrentTasks: 256
+
+# 設定とポリシーのマウント方法
+configMaps:
+  config:
+    enabled: true
+    # 外部のConfigMapを使用する場合は名前を指定
+    name: ""
+    # デフォルトの設定ファイル
+    data:
+      config.yaml: |
+        server:
+          http:
+            address: 0.0.0.0
+            port: 8080
+          grpc:
+            address: 0.0.0.0
+            port: 8081
+        
+        logging:
+          level: info
+          format: json
+          
+        security:
+          policies_dir: /etc/mcp-security-gateway/policies
+          sandbox:
+            enabled: true
+            pool_size: 32
+          
+        tasks:
+          max_concurrent: 256
+          default_timeout: 60
+          max_timeout: 600
+          workspace_dir: /var/lib/mcp-security-gateway/workspace
+
+# 永続ボリューム設定
+persistence:
+  enabled: true
+  # 既存のPVCを使う場合は名前を指定
+  existingClaim: ""
+  # PVCを作成する場合のサイズ
+  size: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  annotations: {}
+  storageClass: ""
+
+# Probes設定
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 30
+  successThreshold: 1
+
+# Prometheus ServiceMonitor
+serviceMonitor:
+  enabled: false
+  additionalLabels: {}
+  interval: 15s
+  scrapeTimeout: 10s
+  metricRelabelings: []
+  relabelings: [] 

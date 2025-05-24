@@ -1,0 +1,58 @@
+groups:
+  - name: mcp-slo-rules
+    rules:
+    # SLO違反アラート：API p95レイテンシが目標の400msを超えた場合
+    - alert: MCPAPILatencyP95TooHigh
+      expr: histogram_quantile(0.95, sum(rate(mcp_task_latency_ms_bucket{job="mcp-gateway"}[5m])) by (le)) > 400
+      for: 5m
+      labels:
+        severity: warning
+        component: api
+        slo: latency
+      annotations:
+        summary: "API P95レイテンシが高すぎます"
+        description: "過去5分間のP95レイテンシが400msを超えています。現在の値: {{ $value }}ms"
+        dashboard: "https://grafana.example.com/d/mcp-performance/mcp-performance"
+        runbook: "https://github.com/username/mcp-security-gateway/docs/operations/RUNBOOK.md#high-latency"
+
+    # SLO違反アラート：API成功率が99.9%を下回った場合
+    - alert: MCPAPIErrorRateTooHigh
+      expr: (sum(rate(mcp_api_requests_total{job="mcp-gateway",status="error"}[5m])) / sum(rate(mcp_api_requests_total{job="mcp-gateway"}[5m]))) > 0.001
+      for: 5m
+      labels:
+        severity: warning
+        component: api
+        slo: availability
+      annotations:
+        summary: "API エラー率が高すぎます"
+        description: "過去5分間のエラー率が0.1%を超えています。現在の値: {{ $value | humanizePercentage }}"
+        dashboard: "https://grafana.example.com/d/mcp-performance/mcp-performance"
+        runbook: "https://github.com/username/mcp-security-gateway/docs/operations/RUNBOOK.md#high-error-rate"
+
+    # SLO違反アラート：APIリクエスト飽和度が80%を超えた場合
+    - alert: MCPAPISaturationTooHigh
+      expr: sum(rate(mcp_api_requests_total{job="mcp-gateway"}[5m])) / 100 > 0.8
+      for: 5m
+      labels:
+        severity: warning
+        component: api
+        slo: saturation
+      annotations:
+        summary: "API リクエスト飽和度が高すぎます"
+        description: "過去5分間のリクエスト率が目標RPS（100/秒）の80%を超えています。現在の値: {{ $value | humanizePercentage }} of capacity"
+        dashboard: "https://grafana.example.com/d/mcp-performance/mcp-performance"
+        runbook: "https://github.com/username/mcp-security-gateway/docs/operations/RUNBOOK.md#high-saturation"
+
+    # SLO違反バーンレートアラート：エラーバジェット消費率が高すぎる場合
+    - alert: MCPErrorBudgetBurnRateTooHigh
+      expr: sum(rate(mcp_api_requests_total{job="mcp-gateway",status="error"}[1h])) / sum(rate(mcp_api_requests_total{job="mcp-gateway"}[1h])) > 14.4 * 0.001
+      for: 10m
+      labels:
+        severity: critical
+        component: api
+        slo: error_budget
+      annotations:
+        summary: "エラーバジェット消費率が高すぎます"
+        description: "エラーバジェットの消費率が通常の14.4倍を超えています。1時間以内に対応が必要です。"
+        dashboard: "https://grafana.example.com/d/mcp-performance/mcp-performance"
+        runbook: "https://github.com/username/mcp-security-gateway/docs/operations/RUNBOOK.md#error-budget-burn" 

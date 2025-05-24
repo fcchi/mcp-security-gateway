@@ -1,0 +1,16 @@
+apiVersion: v2
+name: mcp-gateway
+description: MCPセキュリティゲートウェイ - AI/MLモデルと外部システム間の安全な通信を実現するセキュリティアダプター
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - mcp
+  - security
+  - gateway
+  - sandbox
+  - policy
+home: https://github.com/fcchi/mcp-security-gateway
+maintainers:
+  - name: MCP Team
+    email: support@mcp-security.io 

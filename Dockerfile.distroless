@@ -1,0 +1,71 @@
+# ビルドステージ
+FROM rust:1.73-slim as builder
+
+WORKDIR /app
+
+# 依存関係のみを先にビルドしてキャッシュを活用
+COPY Cargo.toml Cargo.lock ./
+COPY crates/mcp-common/Cargo.toml ./crates/mcp-common/
+COPY crates/mcp-gateway/Cargo.toml ./crates/mcp-gateway/
+COPY crates/mcp-policy/Cargo.toml ./crates/mcp-policy/
+COPY crates/mcp-sandbox/Cargo.toml ./crates/mcp-sandbox/
+RUN mkdir -p crates/mcp-common/src crates/mcp-gateway/src crates/mcp-policy/src crates/mcp-sandbox/src \
+    && touch crates/mcp-common/src/lib.rs crates/mcp-gateway/src/lib.rs crates/mcp-policy/src/lib.rs crates/mcp-sandbox/src/lib.rs \
+    && cargo build --release
+
+# ソースコードをコピーしてビルド
+COPY proto ./proto
+COPY crates ./crates
+RUN cargo build --release \
+    && mkdir -p /app/dist/bin \
+    && cp /app/target/release/mcp-gateway /app/dist/bin/ \
+    && cp -r /app/proto /app/dist/
+
+# bubblewrap, libseccomp, curlを含む中間ステージ
+FROM debian:bullseye-slim as libraries
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bubblewrap \
+    libseccomp2 \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# 必要なライブラリを抽出
+RUN mkdir -p /libraries \
+    && cp $(ldd /usr/bin/bwrap | grep -oP '\/lib\/.*?\s' | tr -d ' ') /libraries/ || true \
+    && cp $(ldd /usr/bin/curl | grep -oP '\/lib\/.*?\s' | tr -d ' ') /libraries/ || true \
+    && cp /usr/bin/bwrap /libraries/ \
+    && cp /usr/bin/curl /libraries/ \
+    && cp -r /etc/ssl/certs /libraries/
+
+# 実行ステージ - distrolessイメージを使用
+FROM gcr.io/distroless/cc-debian11:nonroot
+
+# 必要なディレクトリを作成
+WORKDIR /app
+
+# SSL証明書のためのディレクトリ
+COPY --from=libraries /libraries/certs /etc/ssl/certs
+
+# bubblewrapとその依存ライブラリをコピー
+COPY --from=libraries /libraries/*.so* /usr/lib/
+COPY --from=libraries /libraries/bwrap /usr/bin/
+COPY --from=libraries /libraries/curl /usr/bin/
+
+# アプリケーションバイナリとプロトファイルをコピー
+COPY --from=builder /app/dist/bin/mcp-gateway /usr/local/bin/
+COPY --from=builder /app/dist/proto /app/proto
+
+# ワークスペースディレクトリの作成
+RUN ["/busybox/sh", "-c", "mkdir -p /workspace"]
+VOLUME /workspace
+
+# 非rootユーザーで実行
+USER nonroot:nonroot
+
+# サービスポートの公開
+EXPOSE 8081
+
+# アプリケーション実行
+ENTRYPOINT ["mcp-gateway"]
+CMD ["serve", "--host", "0.0.0.0", "--port", "8081"] 

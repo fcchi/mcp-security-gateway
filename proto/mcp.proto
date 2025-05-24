@@ -1,0 +1,263 @@
+syntax = "proto3";
+
+package mcp;
+
+// MCPセキュリティゲートウェイサービス
+service McpService {
+  // ヘルスチェック
+  rpc Health(HealthRequest) returns (HealthResponse);
+  
+  // コマンド実行
+  rpc ExecuteCommand(CommandRequest) returns (TaskCreatedResponse);
+  
+  // タスク状態取得
+  rpc GetTaskStatus(TaskStatusRequest) returns (TaskStatusResponse);
+  
+  // タスク出力ストリーミング
+  rpc StreamTaskOutput(TaskStatusRequest) returns (stream TaskOutputChunk);
+  
+  // タスクキャンセル
+  rpc CancelTask(TaskStatusRequest) returns (TaskStatusResponse);
+  
+  // ファイル操作
+  rpc ReadFile(ReadFileRequest) returns (ReadFileResponse);
+  rpc WriteFile(WriteFileRequest) returns (WriteFileResponse);
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
+}
+
+// ヘルスチェックリクエスト
+message HealthRequest {}
+
+// ヘルスチェックレスポンス
+message HealthResponse {
+  // サービスの状態
+  string status = 1;
+  // バージョン情報
+  string version = 2;
+  // アップタイム（秒）
+  uint64 uptime_seconds = 3;
+}
+
+// コマンド実行リクエスト
+message CommandRequest {
+  // 実行するコマンド
+  string command = 1;
+  // コマンド引数
+  repeated string args = 2;
+  // 環境変数
+  map<string, string> env = 3;
+  // 作業ディレクトリ
+  optional string cwd = 4;
+  // タイムアウト（秒）
+  uint32 timeout = 5;
+  // タスクのメタデータ
+  map<string, string> metadata = 6;
+  // サンドボックス設定
+  SandboxConfig sandbox_config = 7;
+}
+
+// サンドボックス設定
+message SandboxConfig {
+  // サンドボックスが有効かどうか
+  bool enabled = 1;
+  // ネットワークアクセス設定
+  NetworkAccess network_access = 2;
+  // リソース制限
+  ResourceLimits resource_limits = 3;
+  // 読み書き許可パス
+  repeated string rw_paths = 4;
+  // 読み取り専用許可パス
+  repeated string ro_paths = 5;
+  // アクセス禁止パス
+  repeated string denied_paths = 6;
+}
+
+// ネットワークアクセス設定
+enum NetworkAccess {
+  // ネットワークへのアクセスを許可しない
+  NETWORK_NONE = 0;
+  // ホストと同じネットワークへのアクセスを許可
+  NETWORK_HOST = 1;
+  // 特定のホストへのアクセスのみ許可
+  NETWORK_RESTRICTED = 2;
+}
+
+// リソース制限
+message ResourceLimits {
+  // CPU制限（コア数）
+  float cpu_limit = 1;
+  // メモリ制限（バイト）
+  uint64 memory_limit = 2;
+  // プロセス数制限
+  uint32 pids_limit = 3;
+  // IOウェイト（優先度）
+  uint32 io_weight = 4;
+}
+
+// タスク作成レスポンス
+message TaskCreatedResponse {
+  // タスクID
+  string task_id = 1;
+  // タスクの状態
+  TaskStatus status = 2;
+  // タスクの作成日時（ISO 8601形式）
+  string created_at = 3;
+}
+
+// タスク状態リクエスト
+message TaskStatusRequest {
+  // タスクID
+  string task_id = 1;
+}
+
+// タスク状態レスポンス
+message TaskStatusResponse {
+  // タスク情報
+  TaskInfo task_info = 1;
+  // 結果（完了している場合）
+  optional TaskResult result = 2;
+}
+
+// タスク情報
+message TaskInfo {
+  // タスクID
+  string task_id = 1;
+  // タスクのタイプ
+  TaskType task_type = 2;
+  // タスクの状態
+  TaskStatus status = 3;
+  // タスクの作成日時（ISO 8601形式）
+  string created_at = 4;
+  // タスクの開始日時（ISO 8601形式）
+  optional string started_at = 5;
+  // タスクの完了日時（ISO 8601形式）
+  optional string completed_at = 6;
+  // タスクのメタデータ
+  map<string, string> metadata = 7;
+}
+
+// タスク結果
+message TaskResult {
+  // 終了コード
+  int32 exit_code = 1;
+  // 標準出力
+  string stdout = 2;
+  // 標準エラー出力
+  string stderr = 3;
+  // リソース使用量
+  ResourceUsage resource_usage = 4;
+  // 実行時間（ミリ秒）
+  uint64 execution_time_ms = 5;
+}
+
+// リソース使用量
+message ResourceUsage {
+  // CPU使用時間（ミリ秒）
+  uint64 cpu_time_ms = 1;
+  // 最大メモリ使用量（キロバイト）
+  uint64 max_memory_kb = 2;
+  // 読み込みバイト数
+  uint64 io_read_bytes = 3;
+  // 書き込みバイト数
+  uint64 io_write_bytes = 4;
+}
+
+// タスク出力チャンク
+message TaskOutputChunk {
+  // タスクID
+  string task_id = 1;
+  // チャンクタイプ
+  OutputChunkType type = 2;
+  // チャンクデータ
+  bytes data = 3;
+  // タイムスタンプ（ミリ秒）
+  uint64 timestamp_ms = 4;
+}
+
+// タスクの状態
+enum TaskStatus {
+  // タスクが作成された
+  TASK_CREATED = 0;
+  // タスクがキューに入った
+  TASK_QUEUED = 1;
+  // タスクが実行中
+  TASK_RUNNING = 2;
+  // タスクが完了した
+  TASK_COMPLETED = 3;
+  // タスクが失敗した
+  TASK_FAILED = 4;
+  // タスクがキャンセルされた
+  TASK_CANCELLED = 5;
+  // タスクがタイムアウトした
+  TASK_TIMED_OUT = 6;
+}
+
+// タスクのタイプ
+enum TaskType {
+  // コマンド実行タスク
+  TASK_COMMAND = 0;
+  // ファイル操作タスク
+  TASK_FILE = 1;
+  // HTTPリクエストタスク
+  TASK_HTTP_REQUEST = 2;
+}
+
+// 出力チャンクタイプ
+enum OutputChunkType {
+  // 標準出力
+  CHUNK_STDOUT = 0;
+  // 標準エラー出力
+  CHUNK_STDERR = 1;
+  // 終了コード
+  CHUNK_EXIT_CODE = 2;
+  // イベント
+  CHUNK_EVENT = 3;
+}
+
+// ファイル読み取りリクエスト
+message ReadFileRequest {
+  // ファイルパス
+  string path = 1;
+}
+
+// ファイル読み取りレスポンス
+message ReadFileResponse {
+  // ファイルパス
+  string path = 1;
+  // ファイル内容
+  bytes content = 2;
+  // MIMEタイプ
+  string mime_type = 3;
+}
+
+// ファイル書き込みリクエスト
+message WriteFileRequest {
+  // ファイルパス
+  string path = 1;
+  // ファイル内容
+  bytes content = 2;
+  // 追記モード
+  bool append = 3;
+}
+
+// ファイル書き込みレスポンス
+message WriteFileResponse {
+  // ファイルパス
+  string path = 1;
+  // 書き込みバイト数
+  uint64 bytes_written = 2;
+}
+
+// ファイル削除リクエスト
+message DeleteFileRequest {
+  // ファイルパス
+  string path = 1;
+}
+
+// ファイル削除レスポンス
+message DeleteFileResponse {
+  // ファイルパス
+  string path = 1;
+  // 削除成功
+  bool success = 2;
+} 

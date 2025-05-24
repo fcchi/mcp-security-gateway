@@ -1,0 +1,12 @@
+{{- if .Values.configMaps.config.enabled }}
+{{- if not .Values.configMaps.config.name }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mcp-gateway.fullname" . }}-config
+  labels:
+    {{- include "mcp-gateway.labels" . | nindent 4 }}
+data:
+  {{- toYaml .Values.configMaps.config.data | nindent 2 }}
+{{- end }}
+{{- end }} 

@@ -1,0 +1,17 @@
+[package]
+name = "mcp-sandbox"
+version = "0.1.0"
+edition = "2021"
+authors = ["MCP Team"]
+license = "Apache-2.0"
+description = "bubblewrapとseccompを使用してコマンド実行を分離・制限するMCPセキュリティゲートウェイのサンドボックス"
+
+[dependencies]
+mcp-common = { path = "../mcp-common" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }
+which = "5.0.0" 

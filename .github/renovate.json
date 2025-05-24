@@ -1,0 +1,42 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base"
+  ],
+  "schedule": ["every weekend"],
+  "labels": ["dependencies", "renovate"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true
+    },
+    {
+      "matchDepTypes": ["dev-dependencies"],
+      "automerge": true
+    },
+    {
+      "matchPackagePatterns": ["^tokio", "^tonic", "^axum", "^prost", "^tracing"],
+      "groupName": "core rust dependencies"
+    },
+    {
+      "matchPackagePatterns": ["^opentelemetry", "^prometheus"],
+      "groupName": "observability dependencies"
+    }
+  ],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "chore",
+  "semanticCommitScope": "deps",
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "assignees": ["@team"]
+  },
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/target/**"
+  ],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "timezone": "Asia/Tokyo",
+  "dependencyDashboard": true
+} 

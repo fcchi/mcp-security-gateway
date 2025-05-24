@@ -1,0 +1,16 @@
+[package]
+name = "mcp-policy"
+version = "0.1.0"
+edition = "2021"
+authors = ["MCP Team"]
+license = "Apache-2.0"
+description = "ポリシー評価機能を提供するMCPセキュリティゲートウェイのコンポーネント"
+
+[dependencies]
+mcp-common = { path = "../mcp-common" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }
+opa-wasm = { workspace = true } 

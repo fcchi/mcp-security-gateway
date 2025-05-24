@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  mcp-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.distroless
+    image: mcp-security-gateway:distroless
+    ports:
+      - "8081:8081"
+      - "9090:9090"
+    environment:
+      - RUST_LOG=info
+      - OTEL_ENABLED=true
+      - OTEL_SERVICE_NAME=mcp-gateway
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SAMPLER_RATIO=1.0
+      - MCP_BIND_ADDRESS=0.0.0.0:8081
+    volumes:
+      - ./workspace:/workspace
+      - ./config:/app/config
+      - ./policies:/app/policies
+    command: serve --host 0.0.0.0 --port 8081
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - seccomp=unconfined
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    depends_on:
+      - prometheus
+      - jaeger
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+    restart: unless-stopped
+
+volumes:
+  workspace:
+    driver: local 
