@@ -1,15 +1,16 @@
 use std::time::Duration;
 use anyhow::{Context, Result};
-use opentelemetry::propagation::TextMapPropagator;
-use opentelemetry::sdk::propagation::TraceContextPropagator;
-use opentelemetry::sdk::trace::{self, Sampler};
-use opentelemetry::sdk::Resource;
-use opentelemetry::KeyValue;
-use opentelemetry_otlp::WithExportConfig;
+// OpenTelemetry関連のインポートを一時的にコメントアウト
+// use opentelemetry::propagation::TextMapPropagator;
+// use opentelemetry_sdk::propagation::TraceContextPropagator;
+// use opentelemetry_sdk::trace::{self, Sampler};
+// use opentelemetry_sdk::Resource;
+// use opentelemetry::KeyValue;
+// use opentelemetry_otlp::WithExportConfig;
 use tracing::info;
 use tracing_subscriber::prelude::*;
 use tracing_subscriber::{EnvFilter, fmt};
-use tracing_opentelemetry::OpenTelemetryLayer;
+// use tracing_opentelemetry::OpenTelemetryLayer;
 
 /// トレーシングモジュール
 ///
@@ -97,52 +98,10 @@ pub fn init_tracing(config: TracingConfig) -> Result<()> {
         .with_ansi(true)
         .with_timer(fmt::time::UtcTime::rfc_3339());
 
-    // OpenTelemetryが有効な場合、OTLPエクスポーターを設定
-    if config.enabled {
-        // グローバルプロパゲーターを設定
-        let propagator = TraceContextPropagator::new();
-        opentelemetry::global::set_text_map_propagator(propagator);
-
-        // リソース情報を設定
-        let resource = Resource::new(vec![
-            KeyValue::new("service.name", config.service_name.clone()),
-            KeyValue::new("service.version", env!("CARGO_PKG_VERSION").to_string()),
-            KeyValue::new("deployment.environment", std::env::var("ENVIRONMENT").unwrap_or_else(|_| "development".to_string())),
-        ]);
-
-        // エンドポイントを事前にクローンしておく
-        let endpoint = config.otlp_endpoint.clone();
-
-        // トレースプロバイダーを設定
-        let tracer = opentelemetry_otlp::new_pipeline()
-            .tracing()
-            .with_exporter(
-                opentelemetry_otlp::new_exporter()
-                    .tonic()
-                    .with_endpoint(config.otlp_endpoint)
-                    .with_timeout(Duration::from_secs(config.batch_interval_secs))
-            )
-            .with_trace_config(
-                trace::config()
-                    .with_sampler(Sampler::ParentBased(Box::new(Sampler::TraceIdRatioBased(
-                        config.sampling_ratio
-                    ))))
-                    .with_resource(resource)
-            )
-            .install_batch(opentelemetry::runtime::Tokio)
-            .context("Failed to create OpenTelemetry tracer")?;
-
-        // OpenTelemetryレイヤーを設定
-        let otel_layer = OpenTelemetryLayer::new(tracer);
-
-        // トレーシングサブスクライバーを構築
-        tracing_subscriber::registry()
-            .with(env_filter)
-            .with(fmt_layer)
-            .with(otel_layer)
-            .init();
-
-        info!("OpenTelemetryトレーシングが有効化されました: endpoint={}", endpoint);
+    // OpenTelemetryは一時的に無効化
+    if false && config.enabled {
+        // OpenTelemetryの実装は一時的に無効化
+        info!("OpenTelemetryトレーシングは一時的に無効化されています");
     } else {
         // OpenTelemetryなしでトレーシングサブスクライバーを構築
         tracing_subscriber::registry()
@@ -163,7 +122,8 @@ pub fn init_tracing(config: TracingConfig) -> Result<()> {
 /// アプリケーションの終了時に呼び出すことを推奨します。
 pub fn shutdown_tracing() {
     info!("トレーシングシステムをシャットダウンしています...");
-    opentelemetry::global::shutdown_tracer_provider();
+    // 一時的にコメントアウト
+    // opentelemetry::global::shutdown_tracer_provider();
 }
 
 /// 新しいトレーシングスパンを作成する
