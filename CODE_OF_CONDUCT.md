@@ -1,62 +1,11 @@
-# 貢献者行動規範
+# Contributor Covenant Code of Conduct## Our PledgeWe as members, contributors, and leaders pledge to make participation in ourcommunity a harassment-free experience for everyone, regardless of age, bodysize, visible or invisible disability, ethnicity, sex characteristics, genderidentity and expression, level of experience, education, socio-economic status,nationality, personal appearance, race, religion, or sexual identityand orientation.
 
-## 私たちの約束
+## Our StandardsExamples of behavior that contributes to a positive environment for ourcommunity include:* Using welcoming and inclusive language* Being respectful of differing viewpoints and experiences* Gracefully accepting constructive criticism* Focusing on what is best for the community* Showing empathy towards other community membersExamples of unacceptable behavior include:* The use of sexualized language or imagery and unwelcome sexual attention or  advances* Trolling, insulting/derogatory comments, and personal or political attacks* Public or private harassment* Publishing others' private information, such as a physical or email  address, without explicit permission* Other conduct which could reasonably be considered inappropriate in a  professional setting
 
-私たちはオープンで歓迎的なコミュニティを育成するために、
-貢献者や管理者として、年齢、体型、障碍、民族性、性自認および性別表現、
-経験レベル、国籍、個人の外見、人種、信仰、性的同一性および指向に関わりなく、
-プロジェクトやコミュニティへの参加を誰にとっても嫌がらせのない体験にすることを誓います。
+## Our ResponsibilitiesProject maintainers are responsible for clarifying and enforcing our standards ofacceptable behavior and will take appropriate and fair corrective action inresponse to any behavior that they deem inappropriate, threatening, offensive,or harmful.Project maintainers have the right and responsibility to remove, edit, or rejectcomments, commits, code, wiki edits, issues, and other contributions that arenot aligned to this Code of Conduct, and will communicate reasons for moderationdecisions when appropriate.
 
-## 私たちの標準
+## ScopeThis Code of Conduct applies within all community spaces, and also applies whenan individual is officially representing the community in public spaces.Examples of representing our community include using an official e-mail address,posting via an official social media account, or acting as an appointedrepresentative at an online or offline event.
 
-前向きな環境を作り上げることに貢献する行動の例：
+## EnforcementInstances of abusive, harassing, or otherwise unacceptable behavior may bereported to the community leaders responsible for enforcement at[INSERT CONTACT METHOD].All complaints will be reviewed and investigated promptly and fairly.All community leaders are obligated to respect the privacy and security of thereporter of any incident.Project maintainers who do not follow or enforce the Code of Conduct in goodfaith may face temporary or permanent repercussions as determined by othermembers of the project's leadership.
 
-* 友好的かつ包括的な言葉を使う
-* 異なる観点や経験の尊重
-* 建設的な批判を心地よく受け入れる
-* コミュニティにとって何が最善かに焦点を当てる
-* 他のコミュニティメンバーへの共感を示す
-
-参加者による容認できない行動の例：
-
-* 性的な意味を含む言葉や画像、相手の意思に反した性的関心や接近
-* あおり、侮辱的または軽蔑的なコメント、個人的または政治的攻撃
-* 公的または私的な嫌がらせ
-* 住所やメールアドレスなど、他者のプライベート情報を明示的な許可なく公開する
-* 職場において合理的に不適切と考えられる他の行為
-
-## 私たちの責任
-
-プロジェクト管理者は、許容できる行動の基準を明確にする責任があります。
-また、何かしらの許容できない行動に対応する適切かつ公平な是正処置をとることが
-彼らに期待されています。
-
-プロジェクト管理者は、この行動規範に沿っていない、
-コメント、コミット、コード、wiki編集、issue、その他の貢献を削除、編集、拒否する権利と
-義務を持ち、適切だと判断した場合にはその他の管理者の判断を仰ぎます。
-
-## 適用範囲
-
-この行動規範は、個人がプロジェクトやそのコミュニティを代表するとき、
-プロジェクト内と公共空間の両方において適用されます。
-プロジェクトやコミュニティを代表する例として、プロジェクトの公式メールアドレスの
-使用、ソーシャルメディアの公式アカウント経由の投稿、指名された代表としてのオンラインやオフラインの
-イベントにおける行動があります。プロジェクトを代表することは、プロジェクト管理者によって、
-さらに定義され明確化される可能性があります。
-
-## 執行
-
-暴言、嫌がらせ、またはそれ以外の受け入れられない行動は、
-[連絡先を入れてください]に連絡することで、プロジェクトチームに報告される可能性があります。
-すべての苦情は、レビューと調査され、必要かつ適切と判断された対応がとられます。
-プロジェクトチームは、事象の報告者について守秘義務があります。
-具体的な執行に関する詳細が別途設定されているかもしれません。
-
-この行動規範に誠意を持って従うまたは執行することができないプロジェクト管理者は、
-プロジェクトをリードしている他のメンバーの判断により、一時的または恒久的な影響を受けることがあります。
-
-## 帰属
-
-この行動規範は [Contributor Covenant][homepage] バージョン 1.4 から適応しています。
-
-[homepage]: https://www.contributor-covenant.org 
+## AttributionThis Code of Conduct is adapted from the [Contributor Covenant][homepage],version 1.4, available athttps://www.contributor-covenant.org/version/1/4/code-of-conduct.html[homepage]: https://www.contributor-covenant.org 

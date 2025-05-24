@@ -1,20 +1,20 @@
-# MCPセキュリティゲートウェイへの貢献
+# Contributing to MCP Security Gateway
 
-MCPセキュリティゲートウェイプロジェクトへの貢献に関心をお持ちいただき、ありがとうございます。このドキュメントでは、貢献プロセスについて説明します。
+Thank you for your interest in contributing to the MCP Security Gateway project. This document explains the contribution process.
 
-## 行動規範
+## Code of Conduct
 
-このプロジェクトは[行動規範](CODE_OF_CONDUCT.md)に従います。プロジェクトに参加することで、この規範に従うことに同意したものとみなします。
+This project follows a [Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project, you agree to abide by its terms.
 
-## 開発環境のセットアップ
+## Setting up the Development Environment
 
-1. リポジトリをクローンする：
+1. Clone the repository:
    ```bash
    git clone https://github.com/your-username/mcp-security-gateway.git
    cd mcp-security-gateway
    ```
 
-2. 依存関係をインストールする：
+2. Install dependencies:
    - **Linux (Ubuntu/Debian):**
      ```bash
      sudo apt-get update
@@ -29,70 +29,70 @@ MCPセキュリティゲートウェイプロジェクトへの貢献に関心�
      brew install protobuf
      ```
    - **Windows:**
-     1. [Protocol Buffers リリースページ](https://github.com/protocolbuffers/protobuf/releases)から、最新のWindows用リリース（例：`protoc-25.2-win64.zip`）をダウンロード
-     2. ダウンロードしたZIPファイルを任意のフォルダに解凍
-     3. 解凍したフォルダの`bin`ディレクトリ（例：`C:\protoc\bin`）を環境変数PATHに追加
-     4. コマンドプロンプトまたはPowerShellを再起動
-     5. `protoc --version`コマンドでインストールを確認
+     1. Download the latest Windows release (e.g., `protoc-25.2-win64.zip`) from the [Protocol Buffers release page](https://github.com/protocolbuffers/protobuf/releases)
+     2. Extract the downloaded ZIP file to any folder
+     3. Add the `bin` directory of the extracted folder (e.g., `C:\protoc\bin`) to the PATH environment variable
+     4. Restart Command Prompt or PowerShell
+     5. Verify the installation with the `protoc --version` command
 
-3. ビルドとテスト：
+3. Build and test:
    ```bash
    cargo build
    cargo test
    ```
 
-## 貢献のプロセス
+## Contribution Process
 
-1. [GitHub Issues](https://github.com/your-username/mcp-security-gateway/issues)で既存の問題を確認するか、新しい問題を作成します。
-2. リポジトリをフォークし、ローカルにクローンします。
-3. 機能ブランチを作成します：`git checkout -b feature/your-feature-name`
-4. 変更を加え、テストが通ることを確認してください。
-5. コードスタイルを確認します：`cargo fmt -- --check` および `cargo clippy -- -D warnings`
-6. 変更をコミットし、プッシュします：`git push origin feature/your-feature-name`
-7. プルリクエストを作成します。
+1. Check existing issues or create a new one on [GitHub Issues](https://github.com/your-username/mcp-security-gateway/issues).
+2. Fork the repository and clone it locally.
+3. Create a feature branch: `git checkout -b feature/your-feature-name`
+4. Make your changes and ensure tests pass.
+5. Check code style: `cargo fmt -- --check` and `cargo clippy -- -D warnings`
+6. Commit your changes and push: `git push origin feature/your-feature-name`
+7. Create a pull request.
 
-## コーディング規約
+## Coding Conventions
 
-- Rustの標準スタイルに従います（`cargo fmt`を使用）
-- 警告は解決してください（`cargo clippy -- -D warnings`でチェック）
-- 新機能には単体テストを追加してください（カバレッジ目標 ≥ 80%）
-- ドキュメントコメントを追加してください（公開API/関数には必須）
+- Follow Rust standard style (use `cargo fmt`)
+- Resolve all warnings (check with `cargo clippy -- -D warnings`)
+- Add unit tests for new features (coverage target ≥ 80%)
+- Add documentation comments (required for public APIs/functions)
 
-## コミットメッセージの規約
+## Commit Message Conventions
 
-コミットメッセージは以下の形式に従ってください：
+Follow this format for commit messages:
 ```
-[分類]: 短い説明 (50文字以内)
+[type]: Short description (under 50 chars)
 
-より詳細な説明文 (必要な場合)。72文字で改行。
+More detailed description if needed. Wrap at 72 characters.
 
-関連するIssueを明記：fixes #123
+Reference related issues: fixes #123
 ```
 
-分類の例：
-- `feat`: 新機能
-- `fix`: バグ修正
-- `docs`: ドキュメントのみの変更
-- `test`: テストのみの変更
-- `refactor`: リファクタリング（機能変更なし）
-- `style`: コードスタイルの変更（空白、フォーマットなど）
-- `chore`: ビルドプロセスなどの変更
+Examples of types:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes only
+- `test`: Test changes only
+- `refactor`: Refactoring (no functional changes)
+- `style`: Code style changes (whitespace, formatting, etc.)
+- `chore`: Changes to build process, etc.
 
-## プルリクエストのレビュープロセス
+## Pull Request Review Process
 
-1. CI通過：GitHub Actionsがパスすることを確認
-2. レビュー承認：少なくとも1人のメンテナからのレビュー承認が必要
-3. マージ：すべての要件が満たされたらマージされます
+1. CI pass: Ensure GitHub Actions pass
+2. Review approval: At least one maintainer review approval is required
+3. Merge: Will be merged once all requirements are met
 
-## リリースプロセス
+## Release Process
 
-リリースは[セマンティックバージョニング](https://semver.org/lang/ja/)に従います：
-- パッチリリース（1.0.x）：バグ修正のみ
-- マイナーリリース（1.x.0）：下位互換性のある機能追加
-- メジャーリリース（x.0.0）：下位互換性のない変更
+Releases follow [Semantic Versioning](https://semver.org/):
+- Patch releases (1.0.x): Bug fixes only
+- Minor releases (1.x.0): Backward-compatible new features
+- Major releases (x.0.0): Breaking changes
 
-## 質問や困ったことがある場合
+## Questions and Help
 
-質問がある場合は、issueを作成するか、[ディスカッション](https://github.com/your-username/mcp-security-gateway/discussions)セクションに投稿してください。
+If you have questions, create an issue or post in the [Discussions](https://github.com/your-username/mcp-security-gateway/discussions) section.
 
-ご協力ありがとうございます！ 
+Thank you for your contributions! 
