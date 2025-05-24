@@ -1,11 +1,74 @@
-# Contributor Covenant Code of Conduct## Our PledgeWe as members, contributors, and leaders pledge to make participation in ourcommunity a harassment-free experience for everyone, regardless of age, bodysize, visible or invisible disability, ethnicity, sex characteristics, genderidentity and expression, level of experience, education, socio-economic status,nationality, personal appearance, race, religion, or sexual identityand orientation.
+# Contributor Covenant Code of Conduct
 
-## Our StandardsExamples of behavior that contributes to a positive environment for ourcommunity include:* Using welcoming and inclusive language* Being respectful of differing viewpoints and experiences* Gracefully accepting constructive criticism* Focusing on what is best for the community* Showing empathy towards other community membersExamples of unacceptable behavior include:* The use of sexualized language or imagery and unwelcome sexual attention or  advances* Trolling, insulting/derogatory comments, and personal or political attacks* Public or private harassment* Publishing others' private information, such as a physical or email  address, without explicit permission* Other conduct which could reasonably be considered inappropriate in a  professional setting
+## Our Pledge
 
-## Our ResponsibilitiesProject maintainers are responsible for clarifying and enforcing our standards ofacceptable behavior and will take appropriate and fair corrective action inresponse to any behavior that they deem inappropriate, threatening, offensive,or harmful.Project maintainers have the right and responsibility to remove, edit, or rejectcomments, commits, code, wiki edits, issues, and other contributions that arenot aligned to this Code of Conduct, and will communicate reasons for moderationdecisions when appropriate.
+We as members, contributors, and leaders pledge to make participation in our
+community a harassment-free experience for everyone, regardless of age, body
+size, visible or invisible disability, ethnicity, sex characteristics, gender
+identity and expression, level of experience, education, socio-economic status,
+nationality, personal appearance, race, religion, or sexual identity
+and orientation.
 
-## ScopeThis Code of Conduct applies within all community spaces, and also applies whenan individual is officially representing the community in public spaces.Examples of representing our community include using an official e-mail address,posting via an official social media account, or acting as an appointedrepresentative at an online or offline event.
+## Our Standards
 
-## EnforcementInstances of abusive, harassing, or otherwise unacceptable behavior may bereported to the community leaders responsible for enforcement at[INSERT CONTACT METHOD].All complaints will be reviewed and investigated promptly and fairly.All community leaders are obligated to respect the privacy and security of thereporter of any incident.Project maintainers who do not follow or enforce the Code of Conduct in goodfaith may face temporary or permanent repercussions as determined by othermembers of the project's leadership.
+Examples of behavior that contributes to a positive environment for our
+community include:
 
-## AttributionThis Code of Conduct is adapted from the [Contributor Covenant][homepage],version 1.4, available athttps://www.contributor-covenant.org/version/1/4/code-of-conduct.html[homepage]: https://www.contributor-covenant.org 
+* Using welcoming and inclusive language
+* Being respectful of differing viewpoints and experiences
+* Gracefully accepting constructive criticism
+* Focusing on what is best for the community
+* Showing empathy towards other community members
+
+Examples of unacceptable behavior include:
+
+* The use of sexualized language or imagery and unwelcome sexual attention or
+  advances
+* Trolling, insulting/derogatory comments, and personal or political attacks
+* Public or private harassment
+* Publishing others' private information, such as a physical or email
+  address, without explicit permission
+* Other conduct which could reasonably be considered inappropriate in a
+  professional setting
+
+## Our Responsibilities
+
+Project maintainers are responsible for clarifying and enforcing our standards of
+acceptable behavior and will take appropriate and fair corrective action in
+response to any behavior that they deem inappropriate, threatening, offensive,
+or harmful.
+
+Project maintainers have the right and responsibility to remove, edit, or reject
+comments, commits, code, wiki edits, issues, and other contributions that are
+not aligned to this Code of Conduct, and will communicate reasons for moderation
+decisions when appropriate.
+
+## Scope
+
+This Code of Conduct applies within all community spaces, and also applies when
+an individual is officially representing the community in public spaces.
+Examples of representing our community include using an official e-mail address,
+posting via an official social media account, or acting as an appointed
+representative at an online or offline event.
+
+## Enforcement
+
+Instances of abusive, harassing, or otherwise unacceptable behavior may be
+reported to the community leaders responsible for enforcement at
+[INSERT CONTACT METHOD].
+All complaints will be reviewed and investigated promptly and fairly.
+
+All community leaders are obligated to respect the privacy and security of the
+reporter of any incident.
+
+Project maintainers who do not follow or enforce the Code of Conduct in good
+faith may face temporary or permanent repercussions as determined by other
+members of the project's leadership.
+
+## Attribution
+
+This Code of Conduct is adapted from the [Contributor Covenant][homepage],
+version 1.4, available at
+https://www.contributor-covenant.org/version/1/4/code-of-conduct.html
+
+[homepage]: https://www.contributor-covenant.org 
