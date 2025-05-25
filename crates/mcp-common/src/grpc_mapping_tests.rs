@@ -168,7 +168,7 @@ mod tests {
         let response = error.to_response();
         
         assert_eq!(response.error.code, error_code);
-        assert!(response.error.message.contains("ポリシー違反"));
+        assert!(response.error.message.contains("Policy violation"));
         assert!(response.error.details.is_none());
         
         // 詳細情報付きのエラー応答
@@ -179,7 +179,7 @@ mod tests {
         
         let detailed_response = error.with_details(details.clone());
         assert_eq!(detailed_response.error.code, error_code);
-        assert!(detailed_response.error.message.contains("ポリシー違反"));
+        assert!(detailed_response.error.message.contains("Policy violation"));
         assert_eq!(detailed_response.error.details.unwrap(), details);
     }
 
@@ -202,7 +202,7 @@ mod tests {
         // デシリアライズ
         let parsed: ErrorResponse = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed.error.code, error.code());
-        assert!(parsed.error.message.contains("ポリシー違反"));
+        assert!(parsed.error.message.contains("Policy violation"));
         assert!(parsed.error.details.is_some());
     }
 

@@ -75,7 +75,7 @@ mod tests {
         let result = runner.run(request).await;
         assert!(result.is_err());
         let error = result.unwrap_err();
-        assert!(error.to_string().contains("timeout"));
+        assert!(error.to_string().contains("timed out"));
     }
     
     // Test for command execution without sandbox
