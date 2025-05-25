@@ -1,7 +1,7 @@
 use anyhow::Result;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use tracing_subscriber::{EnvFilter, fmt};
 use tracing::info;
+use tracing_subscriber::{fmt, EnvFilter};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 /// トレーシングモジュール
 ///
@@ -17,7 +17,7 @@ use tracing::info;
 /// 使用例:
 /// ```
 /// use mcp_gateway::tracing::{TracingConfig, init_tracing};
-/// 
+///
 /// let config = TracingConfig {
 ///     enabled: true,
 ///     service_name: "my-service".to_string(),
@@ -128,7 +128,7 @@ pub fn shutdown_tracing() {
 /// # 使用例
 /// ```
 /// use mcp_gateway::tracing::create_span;
-/// 
+///
 /// let span = create_span("process_request", vec![("http.method", "GET"), ("http.path", "/api/v1/status")]);
 /// let _guard = span.enter();
 /// // この範囲内の処理はスパンに記録される
@@ -138,12 +138,12 @@ pub fn create_span(name: &str, attributes: Vec<(&str, &str)>) -> tracing::Span {
     // 動的な名前を使う場合は、以下のようにマクロを使わずに直接作成する
     use tracing::span;
     use tracing::Level;
-    
+
     let span = span!(Level::INFO, "span", name = name);
-    
+
     for (key, value) in attributes {
         span.record(key, value);
     }
-    
+
     span
-} 
+}

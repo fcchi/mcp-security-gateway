@@ -38,7 +38,7 @@ pub fn truncate_string(s: &str, max_len: usize) -> String {
 }
 
 /// Safe JSON parsing (converts errors to McpError::InvalidRequest)
-pub fn parse_json<T>(json_str: &str) -> McpResult<T> 
+pub fn parse_json<T>(json_str: &str) -> McpResult<T>
 where
     T: serde::de::DeserializeOwned,
 {
@@ -79,7 +79,7 @@ mod tests {
         let json = r#"{"name": "test", "value": 42}"#;
         let result: McpResult<TestStruct> = parse_json(json);
         assert!(result.is_ok());
-        
+
         let test_struct = result.unwrap();
         assert_eq!(test_struct.name, "test");
         assert_eq!(test_struct.value, 42);
@@ -88,4 +88,4 @@ mod tests {
         let result: McpResult<TestStruct> = parse_json(invalid_json);
         assert!(result.is_err());
     }
-} 
+}

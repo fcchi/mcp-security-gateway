@@ -24,7 +24,7 @@ impl SeccompProfileManager {
         std::fs::create_dir_all(&profile_dir).unwrap_or_else(|e| {
             error!("Failed to create seccomp profile directory: {}", e);
         });
-        
+
         Self { profile_dir }
     }
 }
@@ -43,37 +43,37 @@ impl SeccompProfileManager {
             SeccompProfileType::Basic => "basic.json",
             SeccompProfileType::Network => "network.json",
         };
-        
+
         let profile_path = self.profile_dir.join(profile_name);
-        
+
         if !profile_path.exists() {
             self.generate_profile(profile_type, &profile_path)?;
         }
-        
+
         Ok(profile_path)
     }
-    
+
     /// Generate a seccomp profile
     fn generate_profile(&self, profile_type: SeccompProfileType, path: &PathBuf) -> McpResult<()> {
         let profile_content = match profile_type {
             SeccompProfileType::Basic => include_str!("../profiles/basic.json"),
             SeccompProfileType::Network => include_str!("../profiles/network.json"),
         };
-        
+
         let mut file = File::create(path).map_err(|e| {
             error!("Failed to create seccomp profile: {}", e);
             McpError::Internal(format!("Failed to create seccomp profile: {}", e))
         })?;
-        
+
         file.write_all(profile_content.as_bytes()).map_err(|e| {
             error!("Failed to write seccomp profile: {}", e);
             McpError::Internal(format!("Failed to write seccomp profile: {}", e))
         })?;
-        
+
         debug!("Generated seccomp profile: {:?}", path);
-        
+
         Ok(())
     }
 }
 
-use mcp_common::error::{McpError, McpResult}; 
+use mcp_common::error::{McpError, McpResult};

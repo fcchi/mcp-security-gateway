@@ -7,7 +7,9 @@ pub mod models;
 
 /// Re-export the main components
 pub use engine::{PolicyEngine, PolicyEvaluator, StubPolicyEvaluator};
-pub use models::{PolicyDecision, PolicyInput, CommandInfo, UserInfo, FileInfo, NetworkInfo, ResourceLimits};
+pub use models::{
+    CommandInfo, FileInfo, NetworkInfo, PolicyDecision, PolicyInput, ResourceLimits, UserInfo,
+};
 
 /// Provide version information
-pub const VERSION: &str = env!("CARGO_PKG_VERSION"); 
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");

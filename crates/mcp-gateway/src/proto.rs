@@ -8,4 +8,4 @@ pub mod mcp {
 // 便利なtypenamesをreexport
 pub use mcp::mcp_service_client::McpServiceClient;
 pub use mcp::mcp_service_server::{McpService, McpServiceServer};
-pub use mcp::*; 
+pub use mcp::*;

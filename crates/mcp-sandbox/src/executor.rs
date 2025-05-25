@@ -2,10 +2,10 @@ use crate::models::{ExecutionRequest, ExecutionResult, SandboxConfig};
 use crate::runner::SandboxRunner;
 use mcp_common::error::{McpError, McpResult};
 use std::collections::HashMap;
+use std::fmt;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tracing::info;
-use std::fmt;
 
 /// Executor for running commands in a sandbox
 #[derive(Clone)]
@@ -53,21 +53,25 @@ impl CommandExecutor {
         timeout: Option<u32>,
     ) -> McpResult<ExecutionResult> {
         let timeout = timeout.unwrap_or(self.default_timeout);
-        
+
         let cwd = cwd.map(PathBuf::from);
-        
+
         info!("Executing command: {} {:?}", command, args);
-        
+
         // Error if command is empty
         if command.is_empty() {
-            return Err(McpError::InvalidRequest("Command is not specified".to_string()));
+            return Err(McpError::InvalidRequest(
+                "Command is not specified".to_string(),
+            ));
         }
-        
+
         // Error if timeout is 0
         if timeout == 0 {
-            return Err(McpError::InvalidRequest("Timeout must be at least 1 second".to_string()));
+            return Err(McpError::InvalidRequest(
+                "Timeout must be at least 1 second".to_string(),
+            ));
         }
-        
+
         let request = ExecutionRequest {
             command: command.to_string(),
             args,
@@ -76,10 +80,10 @@ impl CommandExecutor {
             timeout,
             sandbox_config: self.default_sandbox_config.clone(),
         };
-        
+
         self.runner.run(request).await
     }
-    
+
     /// Create an Executor with updated sandbox configuration
     pub fn with_sandbox_config(&self, config: SandboxConfig) -> Self {
         Self {
@@ -88,7 +92,7 @@ impl CommandExecutor {
             default_sandbox_config: config,
         }
     }
-    
+
     /// Create an Executor with updated timeout setting
     pub fn with_timeout(&self, timeout: u32) -> Self {
         Self {
@@ -103,4 +107,4 @@ impl Default for CommandExecutor {
     fn default() -> Self {
         Self::new()
     }
-} 
+}

@@ -1,12 +1,18 @@
+use crate::metrics;
 use crate::proto::mcp_service_server::McpServiceServer;
 use crate::McpServiceImpl;
+use axum::{
+    body::Body,
+    http::{header, StatusCode},
+    response::Response,
+    routing::get,
+    Router,
+};
+use prometheus::Encoder;
+use prometheus::TextEncoder;
 use std::net::SocketAddr;
 use tonic::transport::Server;
 use tracing::info;
-use axum::{Router, routing::get, response::Response, body::Body, http::{header, StatusCode}};
-use prometheus::Encoder;
-use prometheus::TextEncoder;
-use crate::metrics;
 
 /// gRPCサーバーの作成
 ///
@@ -32,10 +38,7 @@ pub async fn run_server(
     // メトリクスサーバーを起動
     start_metrics_server();
 
-    Server::builder()
-        .add_service(service)
-        .serve(addr)
-        .await?;
+    Server::builder().add_service(service).serve(addr).await?;
 
     Ok(())
 }
@@ -59,7 +62,7 @@ fn start_metrics_server() {
                 return;
             }
         };
-        
+
         if let Err(e) = axum::serve(listener, app).await {
             tracing::error!("メトリクスサーバーの起動に失敗しました: {}", e);
         }
@@ -70,7 +73,7 @@ fn start_metrics_server() {
 async fn metrics_handler() -> Response<Body> {
     let encoder = TextEncoder::new();
     let metrics = metrics::get_registry().gather();
-    
+
     let mut buffer = Vec::new();
     if let Err(e) = encoder.encode(&metrics, &mut buffer) {
         tracing::error!("メトリクスのエンコードに失敗しました: {}", e);
@@ -79,7 +82,7 @@ async fn metrics_handler() -> Response<Body> {
             .body(Body::from("メトリクスのエンコードに失敗しました"))
             .unwrap();
     }
-    
+
     match String::from_utf8(buffer) {
         Ok(body) => Response::builder()
             .status(StatusCode::OK)
@@ -108,7 +111,7 @@ async fn health_handler() -> Response<Body> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[tokio::test]
     async fn test_create_server() {
         // サービス実装を作成
@@ -117,9 +120,9 @@ mod tests {
             mcp_sandbox::CommandExecutor::new(),
             std::time::SystemTime::now(),
         );
-        
+
         // サーバーを作成
         let _server = create_server(service);
         assert!(true); // 型チェックのみで確認
     }
-} 
+}

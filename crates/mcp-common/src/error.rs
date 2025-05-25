@@ -1,6 +1,6 @@
-use thiserror::Error;
-use std::fmt;
 use serde_json::Value;
+use std::fmt;
+use thiserror::Error;
 use tracing::{debug, error};
 
 /// Common error type used in MCP Security Gateway
@@ -91,13 +91,13 @@ pub struct ErrorDetail {
 }
 
 /// Macro to convert Result<T, E> to Result<T, McpError>
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use mcp_common::to_mcp_result;
 /// use std::fs::File;
-/// 
+///
 /// fn read_config() -> mcp_common::error::McpResult<String> {
 ///     let file = to_mcp_result!(File::open("config.json"), "Cannot open config file");
 ///     // Further processing...
@@ -109,17 +109,23 @@ macro_rules! to_mcp_result {
     ($expr:expr, $msg:expr) => {
         match $expr {
             Ok(val) => val,
-            Err(err) => return Err(mcp_common::error::McpError::Internal(
-                format!("{}: {}", $msg, err)
-            )),
+            Err(err) => {
+                return Err(mcp_common::error::McpError::Internal(format!(
+                    "{}: {}",
+                    $msg, err
+                )))
+            }
         }
     };
     ($expr:expr, $err_type:ident, $msg:expr) => {
         match $expr {
             Ok(val) => val,
-            Err(err) => return Err(mcp_common::error::McpError::$err_type(
-                format!("{}: {}", $msg, err)
-            )),
+            Err(err) => {
+                return Err(mcp_common::error::McpError::$err_type(format!(
+                    "{}: {}",
+                    $msg, err
+                )))
+            }
         }
     };
 }
@@ -131,29 +137,47 @@ impl McpError {
             McpError::Auth(msg) if msg.contains("invalid") => error_code::AUTH_INVALID_CREDENTIALS,
             McpError::Auth(msg) if msg.contains("expired") => error_code::AUTH_EXPIRED_TOKEN,
             McpError::Auth(_) => error_code::AUTH_INSUFFICIENT_PERMISSIONS,
-            
-            McpError::InvalidRequest(msg) if msg.contains("missing") => error_code::INPUT_MISSING_REQUIRED,
-            McpError::InvalidRequest(msg) if msg.contains("format") => error_code::INPUT_INVALID_FORMAT,
+
+            McpError::InvalidRequest(msg) if msg.contains("missing") => {
+                error_code::INPUT_MISSING_REQUIRED
+            }
+            McpError::InvalidRequest(msg) if msg.contains("format") => {
+                error_code::INPUT_INVALID_FORMAT
+            }
             McpError::InvalidRequest(_) => error_code::INPUT_INVALID_PARAMETER,
-            
+
             McpError::NotFound(_) => error_code::RESOURCE_NOT_FOUND,
-            
-            McpError::PolicyViolation(msg) if msg.contains("command") => error_code::POLICY_COMMAND_NOT_ALLOWED,
-            McpError::PolicyViolation(msg) if msg.contains("network") => error_code::POLICY_NETWORK_ACCESS_DENIED,
-            McpError::PolicyViolation(msg) if msg.contains("file") => error_code::POLICY_FILE_ACCESS_DENIED,
-            McpError::PolicyViolation(msg) if msg.contains("resource") => error_code::POLICY_RESOURCE_LIMIT_EXCEEDED,
+
+            McpError::PolicyViolation(msg) if msg.contains("command") => {
+                error_code::POLICY_COMMAND_NOT_ALLOWED
+            }
+            McpError::PolicyViolation(msg) if msg.contains("network") => {
+                error_code::POLICY_NETWORK_ACCESS_DENIED
+            }
+            McpError::PolicyViolation(msg) if msg.contains("file") => {
+                error_code::POLICY_FILE_ACCESS_DENIED
+            }
+            McpError::PolicyViolation(msg) if msg.contains("resource") => {
+                error_code::POLICY_RESOURCE_LIMIT_EXCEEDED
+            }
             McpError::PolicyViolation(_) => error_code::POLICY_COMMAND_NOT_ALLOWED,
-            
+
             McpError::Sandbox(msg) if msg.contains("setup") => error_code::SANDBOX_SETUP_FAILED,
-            McpError::Sandbox(msg) if msg.contains("resource") => error_code::SANDBOX_RESOURCE_LIMIT_EXCEEDED,
+            McpError::Sandbox(msg) if msg.contains("resource") => {
+                error_code::SANDBOX_RESOURCE_LIMIT_EXCEEDED
+            }
             McpError::Sandbox(_) => error_code::SANDBOX_EXECUTION_FAILED,
-            
+
             McpError::Execution(_) => error_code::SANDBOX_EXECUTION_FAILED,
-            
-            McpError::Internal(msg) if msg.contains("database") => error_code::INTERNAL_DATABASE_ERROR,
-            McpError::Internal(msg) if msg.contains("dependency") => error_code::INTERNAL_DEPENDENCY_FAILED,
+
+            McpError::Internal(msg) if msg.contains("database") => {
+                error_code::INTERNAL_DATABASE_ERROR
+            }
+            McpError::Internal(msg) if msg.contains("dependency") => {
+                error_code::INTERNAL_DEPENDENCY_FAILED
+            }
             McpError::Internal(_) => error_code::INTERNAL_UNEXPECTED,
-            
+
             McpError::Temporary(_) => error_code::INTERNAL_UNEXPECTED,
             McpError::ExternalService(_) => error_code::INTERNAL_DEPENDENCY_FAILED,
         }
@@ -166,7 +190,7 @@ impl McpError {
                 code: self.code(),
                 message: self.to_string(),
                 details: None,
-            }
+            },
         }
     }
 
@@ -177,36 +201,40 @@ impl McpError {
                 code: self.code(),
                 message: self.to_string(),
                 details: Some(details),
-            }
+            },
         }
     }
-    
+
     /// Create policy violation error with custom code
-    pub fn policy_violation(message: impl Into<String>, _code: u32, details: Option<Value>) -> Self {
+    pub fn policy_violation(
+        message: impl Into<String>,
+        _code: u32,
+        details: Option<Value>,
+    ) -> Self {
         // Create basic error
         let error = McpError::PolicyViolation(message.into());
-        
+
         // Log details
         if let Some(details_json) = &details {
             debug!("Policy violation details: {}", details_json);
         }
-        
+
         error
     }
-    
+
     /// Create sandbox error with custom code
     pub fn sandbox_error(message: impl Into<String>, _code: u32, details: Option<Value>) -> Self {
         // Create basic error
         let error = McpError::Sandbox(message.into());
-        
+
         // Log details
         if let Some(details_json) = &details {
             debug!("Sandbox error details: {}", details_json);
         }
-        
+
         error
     }
-    
+
     /// Helper function to create error response from other McpError
     pub fn from_error<E: fmt::Display>(err: E, _code: u32) -> Self {
         McpError::Internal(format!("{}", err))
@@ -221,11 +249,21 @@ impl From<std::io::Error> for McpError {
     fn from(err: std::io::Error) -> Self {
         match err.kind() {
             std::io::ErrorKind::NotFound => McpError::NotFound(format!("File not found: {}", err)),
-            std::io::ErrorKind::PermissionDenied => McpError::PolicyViolation(format!("Permission denied: {}", err)),
-            std::io::ErrorKind::ConnectionRefused => McpError::ExternalService(format!("Connection refused: {}", err)),
-            std::io::ErrorKind::ConnectionReset => McpError::Temporary(format!("Connection reset: {}", err)),
-            std::io::ErrorKind::ConnectionAborted => McpError::Temporary(format!("Connection aborted: {}", err)),
-            std::io::ErrorKind::NotConnected => McpError::ExternalService(format!("Not connected: {}", err)),
+            std::io::ErrorKind::PermissionDenied => {
+                McpError::PolicyViolation(format!("Permission denied: {}", err))
+            }
+            std::io::ErrorKind::ConnectionRefused => {
+                McpError::ExternalService(format!("Connection refused: {}", err))
+            }
+            std::io::ErrorKind::ConnectionReset => {
+                McpError::Temporary(format!("Connection reset: {}", err))
+            }
+            std::io::ErrorKind::ConnectionAborted => {
+                McpError::Temporary(format!("Connection aborted: {}", err))
+            }
+            std::io::ErrorKind::NotConnected => {
+                McpError::ExternalService(format!("Not connected: {}", err))
+            }
             std::io::ErrorKind::TimedOut => McpError::Execution(format!("Timed out: {}", err)),
             _ => McpError::Internal(format!("I/O error: {}", err)),
         }
@@ -282,7 +320,7 @@ macro_rules! try_trace {
 pub trait IntoMcpResult<T, E> {
     /// Convert Result<T, E> to McpResult<T>
     fn into_mcp_result(self) -> McpResult<T>;
-    
+
     /// Convert Result<T, E> to McpResult<T> with custom message
     fn into_mcp_result_with_msg(self, msg: impl Into<String>) -> McpResult<T>;
 }
@@ -291,7 +329,7 @@ impl<T, E: std::fmt::Display> IntoMcpResult<T, E> for Result<T, E> {
     fn into_mcp_result(self) -> McpResult<T> {
         self.map_err(|e| McpError::Internal(format!("{}", e)))
     }
-    
+
     fn into_mcp_result_with_msg(self, msg: impl Into<String>) -> McpResult<T> {
         self.map_err(|e| McpError::Internal(format!("{}: {}", msg.into(), e)))
     }
@@ -301,7 +339,7 @@ impl<T, E: std::fmt::Display> IntoMcpResult<T, E> for Result<T, E> {
 pub trait ToMcpError {
     /// Convert to McpError
     fn to_mcp_error(self) -> McpError;
-    
+
     /// Convert to McpError with custom message
     fn to_mcp_error_with_msg(self, msg: impl Into<String>) -> McpError;
 }
@@ -309,8 +347,8 @@ pub trait ToMcpError {
 // Generic implementation of ToMcpError (applies only to types that implement From<E>)
 // Note: This implementation doesn't apply to mcp-error's ToMcpError itself
 // This provides necessary conversions while avoiding conflicts
-impl<E> ToMcpError for E 
-where 
+impl<E> ToMcpError for E
+where
     E: std::fmt::Display,
     E: Into<McpError>,
     E: Sized,
@@ -319,19 +357,25 @@ where
     fn to_mcp_error(self) -> McpError {
         self.into()
     }
-    
+
     fn to_mcp_error_with_msg(self, msg: impl Into<String>) -> McpError {
         let error = self.into();
         match error {
             McpError::Internal(e) => McpError::Internal(format!("{}: {}", msg.into(), e)),
-            McpError::InvalidRequest(e) => McpError::InvalidRequest(format!("{}: {}", msg.into(), e)),
-            McpError::PolicyViolation(e) => McpError::PolicyViolation(format!("{}: {}", msg.into(), e)),
+            McpError::InvalidRequest(e) => {
+                McpError::InvalidRequest(format!("{}: {}", msg.into(), e))
+            }
+            McpError::PolicyViolation(e) => {
+                McpError::PolicyViolation(format!("{}: {}", msg.into(), e))
+            }
             McpError::Auth(e) => McpError::Auth(format!("{}: {}", msg.into(), e)),
             McpError::NotFound(e) => McpError::NotFound(format!("{}: {}", msg.into(), e)),
             McpError::Sandbox(e) => McpError::Sandbox(format!("{}: {}", msg.into(), e)),
             McpError::Execution(e) => McpError::Execution(format!("{}: {}", msg.into(), e)),
             McpError::Temporary(e) => McpError::Temporary(format!("{}: {}", msg.into(), e)),
-            McpError::ExternalService(e) => McpError::ExternalService(format!("{}: {}", msg.into(), e)),
+            McpError::ExternalService(e) => {
+                McpError::ExternalService(format!("{}: {}", msg.into(), e))
+            }
         }
     }
 }
@@ -339,22 +383,29 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_result_into_mcp_result() {
         let ok_result: Result<i32, &str> = Ok(42);
         let err_result: Result<i32, &str> = Err("Error occurred");
-        
+
         assert_eq!(ok_result.into_mcp_result().unwrap(), 42);
-        assert!(matches!(err_result.into_mcp_result(), Err(McpError::Internal(_))));
+        assert!(matches!(
+            err_result.into_mcp_result(),
+            Err(McpError::Internal(_))
+        ));
     }
-    
+
     #[test]
     fn test_io_error_conversion() {
         let not_found = std::io::Error::new(std::io::ErrorKind::NotFound, "File not found");
-        let perm_denied = std::io::Error::new(std::io::ErrorKind::PermissionDenied, "Permission error");
-        
+        let perm_denied =
+            std::io::Error::new(std::io::ErrorKind::PermissionDenied, "Permission error");
+
         assert!(matches!(not_found.to_mcp_error(), McpError::NotFound(_)));
-        assert!(matches!(perm_denied.to_mcp_error(), McpError::PolicyViolation(_)));
+        assert!(matches!(
+            perm_denied.to_mcp_error(),
+            McpError::PolicyViolation(_)
+        ));
     }
-} 
+}

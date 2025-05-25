@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Task status
@@ -117,4 +117,4 @@ pub struct HealthResponse {
 /// Default timeout value (30 seconds)
 fn default_timeout() -> u32 {
     30
-} 
+}

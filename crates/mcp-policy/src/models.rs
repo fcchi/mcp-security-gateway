@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Policy evaluation input data
@@ -106,4 +106,4 @@ pub struct PolicyDecision {
     /// Additional metadata
     #[serde(default)]
     pub metadata: HashMap<String, serde_json::Value>,
-} 
+}
