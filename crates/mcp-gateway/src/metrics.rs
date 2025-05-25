@@ -272,4 +272,12 @@ mod tests {
         // Verify that registry is obtained
         assert!(!registry.gather().is_empty(), "Registry is not correctly initialized");
     }
+
+    #[test]
+    fn test_metrics_singleton() {
+        // メトリクスシングルトンが初期化できることを確認
+        init_metrics();
+        let registry = get_registry();
+        assert!(!registry.gather().is_empty(), "Registry is not correctly initialized");
+    }
 } 

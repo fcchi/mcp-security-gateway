@@ -14,4 +14,8 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 anyhow = { workspace = true }
-which = "5.0.0" 
+which = "5.0.0"
+
+[features]
+default = []
+ci = [] # CI環境でのテスト実行用の機能フラグ 

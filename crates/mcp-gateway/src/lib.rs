@@ -9,6 +9,10 @@ pub mod server;
 pub mod service;
 pub mod tracing;
 
+// 再エクスポート
+use mcp_policy::PolicyEngine;
+use mcp_sandbox::CommandExecutor;
+
 #[cfg(test)]
 mod service_tests;
 
@@ -25,8 +29,4 @@ pub fn create_server(service: McpServiceImpl) -> McpServiceServer<McpServiceImpl
 
 pub fn new_service(start_time: SystemTime) -> McpServiceImpl {
     McpServiceImpl::new(PolicyEngine::new(), CommandExecutor::new(), start_time)
-}
-
-// 再エクスポート
-use mcp_policy::PolicyEngine;
-use mcp_sandbox::CommandExecutor; 
+} 
