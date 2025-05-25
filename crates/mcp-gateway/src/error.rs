@@ -1,5 +1,7 @@
 //! Global error handling for gRPC services
 
+#![allow(clippy::result_large_err)]
+
 use mcp_common::{McpError, IntoStatus, ErrorResponse, ErrorDetail};
 use tonic::{Response, Status};
 use tracing::{error, warn, debug};

@@ -49,7 +49,7 @@ jobs:
           cargo tarpaulin --out Html --workspace --exclude-files "**/proto/*"
       
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: code-coverage-report
           path: tarpaulin-report.html 

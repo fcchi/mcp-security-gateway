@@ -89,8 +89,8 @@ pub fn init_tracing(config: TracingConfig) -> Result<()> {
         .with_ansi(true)
         .with_timer(fmt::time::UtcTime::rfc_3339());
 
-    // OpenTelemetryは一時的に無効化
-    if false && config.enabled {
+    // OpenTelemetryが有効かどうかをチェック
+    if config.enabled {
         // OpenTelemetryの実装は一時的に無効化
         info!("OpenTelemetryトレーシングは一時的に無効化されています");
     } else {
