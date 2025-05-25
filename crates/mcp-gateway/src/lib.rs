@@ -10,8 +10,8 @@ pub mod service;
 pub mod tracing;
 
 // 再エクスポート
-use mcp_policy::models::PolicyEngine;
-use mcp_sandbox::executor::CommandExecutor;
+use mcp_policy::PolicyEngine;
+use mcp_sandbox::CommandExecutor;
 
 #[cfg(test)]
 mod service_tests;

@@ -4,8 +4,7 @@
 
 use dashmap::DashMap;
 use mcp_common::{
-    error::{ErrorDetail, ErrorResponse, McpError},
-    grpc::IntoStatus,
+    ErrorDetail, ErrorResponse, McpError, IntoStatus
 };
 use once_cell::sync::Lazy;
 use serde_json::Value;
