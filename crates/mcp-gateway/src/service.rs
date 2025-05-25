@@ -6,7 +6,7 @@ use crate::proto::{
     TaskStatusRequest, TaskStatusResponse, WriteFileRequest, WriteFileResponse,
 };
 use dashmap::DashMap;
-use mcp_common::{error::McpResult, McpError};
+use mcp_common::{McpError, McpResult};
 use mcp_policy::{CommandInfo, PolicyEngine, PolicyInput, UserInfo};
 use mcp_sandbox::CommandExecutor;
 use std::collections::HashMap;

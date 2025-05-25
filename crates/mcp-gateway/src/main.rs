@@ -4,6 +4,7 @@ use mcp_gateway::{create_server, new_service};
 use std::net::SocketAddr;
 use std::time::SystemTime;
 use tracing::info;
+use std::env;
 
 /// 環境変数からトレーシング設定を構築する
 pub fn build_tracing_config() -> TracingConfig {
@@ -74,7 +75,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::env;
 
     #[test]
     fn test_build_tracing_config() {
@@ -82,15 +82,15 @@ mod tests {
         let config = build_tracing_config();
         assert_eq!(config.enabled, false);
         assert_eq!(config.service_name, "mcp-security-gateway");
-        
+
         // 環境変数設定テスト
         env::set_var("OTEL_ENABLED", "true");
         env::set_var("OTEL_SERVICE_NAME", "test-service");
-        
+
         let config = build_tracing_config();
         assert_eq!(config.enabled, true);
         assert_eq!(config.service_name, "test-service");
-        
+
         // 環境変数をクリア
         env::remove_var("OTEL_ENABLED");
         env::remove_var("OTEL_SERVICE_NAME");
@@ -101,13 +101,70 @@ mod tests {
         // デフォルト値のテスト
         let addr = get_bind_address().unwrap();
         assert_eq!(addr.to_string(), "127.0.0.1:8081");
-        
+
         // 環境変数設定テスト
         env::set_var("MCP_BIND_ADDRESS", "0.0.0.0:9000");
         let addr = get_bind_address().unwrap();
         assert_eq!(addr.to_string(), "0.0.0.0:9000");
+
+        // 環境変数をクリア
+        env::remove_var("MCP_BIND_ADDRESS");
+    }
+    
+    #[test]
+    fn test_invalid_bind_address() {
+        // 無効なアドレス形式のテスト
+        env::set_var("MCP_BIND_ADDRESS", "invalid-address");
+        let result = get_bind_address();
+        assert!(result.is_err());
         
         // 環境変数をクリア
         env::remove_var("MCP_BIND_ADDRESS");
+    }
+    
+    #[test]
+    fn test_additional_tracing_config() {
+        // 追加の環境変数設定テスト
+        env::set_var("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:9999");
+        env::set_var("OTEL_SAMPLER_RATIO", "0.5");
+        env::set_var("OTEL_BATCH_INTERVAL_SECS", "10");
+        env::set_var("OTEL_PARENT_BASED_RATIO", "0.75");
+        env::set_var("RUST_LOG", "debug");
+        
+        let config = build_tracing_config();
+        assert_eq!(config.otlp_endpoint, "http://localhost:9999");
+        assert_eq!(config.sampling_ratio, 0.5);
+        assert_eq!(config.batch_interval_secs, 10);
+        assert_eq!(config.parent_base_trace_id_ratio, 0.75);
+        assert_eq!(config.log_level, "debug");
+        
+        // 環境変数をクリア
+        env::remove_var("OTEL_EXPORTER_OTLP_ENDPOINT");
+        env::remove_var("OTEL_SAMPLER_RATIO");
+        env::remove_var("OTEL_BATCH_INTERVAL_SECS");
+        env::remove_var("OTEL_PARENT_BASED_RATIO");
+        env::remove_var("RUST_LOG");
+    }
+    
+    #[test]
+    fn test_invalid_tracing_config_values() {
+        // 無効な数値形式のテスト
+        env::set_var("OTEL_ENABLED", "not-a-bool");
+        env::set_var("OTEL_SAMPLER_RATIO", "not-a-float");
+        env::set_var("OTEL_BATCH_INTERVAL_SECS", "not-a-number");
+        env::set_var("OTEL_PARENT_BASED_RATIO", "not-a-float");
+        
+        let config = build_tracing_config();
+        // デフォルト値が使用されるはず
+        assert_eq!(config.enabled, false);  // 無効な値はfalseとして扱われる
+        assert_eq!(config.sampling_ratio, 1.0);
+        assert_eq!(config.batch_interval_secs, 5);
+        assert_eq!(config.parent_base_trace_id_ratio, 1.0);
+        
+        // 環境変数をクリア
+        env::remove_var("OTEL_ENABLED");
+        env::remove_var("OTEL_SAMPLER_RATIO");
+        env::remove_var("OTEL_BATCH_INTERVAL_SECS");
+        env::remove_var("OTEL_PARENT_BASED_RATIO");
     }
 }

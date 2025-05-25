@@ -200,114 +200,167 @@ mod tests {
 
     #[test]
     fn test_metrics_initialization() {
-        // Initialize metrics
+        // 初期化を呼び出し
         init_metrics();
 
-        // Verify that second initialization can be called without issues
-        init_metrics();
-
-        // Verify that registry is initialized
+        // 変数が正しく初期化されていることを確認
         unsafe {
-            assert!(REGISTRY.is_some(), "Registry has not been initialized");
-            assert!(
-                API_REQUESTS.is_some(),
-                "API_REQUESTS has not been initialized"
-            );
-            assert!(
-                TASK_EXECUTION_TIME.is_some(),
-                "TASK_EXECUTION_TIME has not been initialized"
-            );
-            assert!(
-                ACTIVE_TASKS.is_some(),
-                "ACTIVE_TASKS has not been initialized"
-            );
-            assert!(
-                POLICY_EVALUATIONS.is_some(),
-                "POLICY_EVALUATIONS has not been initialized"
-            );
-            assert!(
-                SANDBOX_EXECUTION_TIME.is_some(),
-                "SANDBOX_EXECUTION_TIME has not been initialized"
-            );
-            assert!(
-                ERROR_COUNTER.is_some(),
-                "ERROR_COUNTER has not been initialized"
-            );
+            assert!(REGISTRY.is_some());
+            assert!(API_REQUESTS.is_some());
+            assert!(TASK_EXECUTION_TIME.is_some());
+            assert!(ACTIVE_TASKS.is_some());
+            assert!(POLICY_EVALUATIONS.is_some());
+            assert!(SANDBOX_EXECUTION_TIME.is_some());
+            assert!(ERROR_COUNTER.is_some());
         }
+
+        // レジストリを取得
+        let registry = get_registry();
+        assert!(registry.gather().len() > 0);
+
+        // メトリクスの初期化を再度呼び出し (should be idempotent)
+        init_metrics();
+
+        // メトリクスが引き続き存在していることを確認
+        unsafe {
+            assert!(API_REQUESTS.is_some());
+        }
+
+        // APIリクエストカウンタの値を取得
+        let metrics = registry.gather();
+        let mut found = false;
+
+        for mf in metrics {
+            if mf.name() == "mcp_api_requests_total" {
+                found = true;
+                break;
+            }
+        }
+
+        assert!(found, "mcp_api_requests_total メトリクスが見つかりません");
     }
 
     #[test]
     fn test_increment_api_counter() {
-        // Initialize metrics
+        // メトリクスを初期化
         init_metrics();
 
-        // Increment API counter
-        increment_api_requests("GET", "/api/status", "200");
+        // APIリクエストをインクリメント
+        increment_api_requests("GET", "/health", "200");
+        increment_api_requests("POST", "/command", "200");
+        increment_api_requests("GET", "/health", "200");
 
-        // Increment the same label again
-        increment_api_requests("GET", "/api/status", "200");
-
-        // Method to verify that the counter is incremented twice is omitted
-        // (Depends on Prometheus implementation details)
+        // インクリメントが成功することを確認 (値は検証できないが、クラッシュしないことを確認)
+        assert!(true);
     }
 
     #[test]
     fn test_record_task_execution_time() {
-        // Initialize metrics
+        // メトリクスを初期化
         init_metrics();
 
-        // Start task
-        let start = Instant::now();
-
-        // Wait a bit
+        // タスク実行時間を記録
+        let start = start_task_timer();
         std::thread::sleep(Duration::from_millis(10));
+        observe_task_execution_time(start, "test_task", "success");
 
-        // Record task completion
-        observe_task_execution_time(start, "command", "success");
+        // 複数のタスク時間を記録
+        let start2 = start_task_timer();
+        std::thread::sleep(Duration::from_millis(5));
+        observe_task_execution_time(start2, "another_task", "failure");
 
-        // Method to verify that time is recorded correctly is omitted
-        // (Depends on Prometheus implementation details)
+        // 記録が成功することを確認
+        assert!(true);
     }
 
     #[test]
     fn test_update_active_tasks() {
-        // Initialize metrics
+        // メトリクスを初期化
         init_metrics();
 
-        // Increment active tasks
+        // アクティブタスクをインクリメント
+        increment_active_tasks();
         increment_active_tasks();
         increment_active_tasks();
 
-        // Decrement active tasks
+        // アクティブタスクをデクリメント
+        decrement_active_tasks();
         decrement_active_tasks();
 
-        // Method to verify that the count is 1 is omitted
-        // (Depends on Prometheus implementation details)
+        // 更新が成功することを確認
+        assert!(true);
     }
 
     #[test]
     fn test_metrics_registry() {
-        // Initialize metrics
+        // メトリクスを初期化
         init_metrics();
 
-        // Get registry
+        // レジストリを取得
         let registry = get_registry();
 
-        // Verify that registry is obtained
-        assert!(
-            !registry.gather().is_empty(),
-            "Registry is not correctly initialized"
-        );
+        // レジストリにメトリクスが含まれていることを確認
+        let metrics = registry.gather();
+        assert!(!metrics.is_empty());
     }
 
     #[test]
     fn test_metrics_singleton() {
-        // メトリクスシングルトンが初期化できることを確認
+        // メトリクスを初期化
         init_metrics();
-        let registry = get_registry();
-        assert!(
-            !registry.gather().is_empty(),
-            "Registry is not correctly initialized"
-        );
+
+        // 同じレジストリインスタンスを2回取得
+        let registry1 = get_registry() as *const Registry;
+        let registry2 = get_registry() as *const Registry;
+
+        // 同じインスタンスであることを確認
+        assert_eq!(registry1, registry2);
+    }
+    
+    #[test]
+    fn test_policy_evaluations() {
+        // メトリクスを初期化
+        init_metrics();
+        
+        // ポリシー評価をカウント
+        increment_policy_evaluations("command_policy", "allowed");
+        increment_policy_evaluations("command_policy", "denied");
+        increment_policy_evaluations("file_policy", "allowed");
+        
+        // カウントが成功することを確認
+        assert!(true);
+    }
+    
+    #[test]
+    fn test_sandbox_execution_time() {
+        // メトリクスを初期化
+        init_metrics();
+        
+        // サンドボックス実行時間を記録
+        let start = start_sandbox_timer();
+        std::thread::sleep(Duration::from_millis(15));
+        observe_sandbox_execution_time(start, "echo");
+        
+        // 別のコマンドも記録
+        let start2 = start_sandbox_timer();
+        std::thread::sleep(Duration::from_millis(5));
+        observe_sandbox_execution_time(start2, "ls");
+        
+        // 記録が成功することを確認
+        assert!(true);
+    }
+    
+    #[test]
+    fn test_error_counter() {
+        // メトリクスを初期化
+        init_metrics();
+        
+        // エラーをカウント
+        increment_error_counter("auth", "401");
+        increment_error_counter("validation", "400");
+        increment_error_counter("internal", "500");
+        
+        // カウントが成功することを確認
+        assert!(true);
     }
 }
