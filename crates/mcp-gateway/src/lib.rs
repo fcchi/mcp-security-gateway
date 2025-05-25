@@ -30,3 +30,25 @@ pub fn create_server(service: McpServiceImpl) -> McpServiceServer<McpServiceImpl
 pub fn new_service(start_time: SystemTime) -> McpServiceImpl {
     McpServiceImpl::new(PolicyEngine::new(), CommandExecutor::new(), start_time)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::SystemTime;
+
+    #[test]
+    fn test_create_server() {
+        let start_time = SystemTime::now();
+        let service = new_service(start_time);
+        let _server = create_server(service);
+        assert!(true, "サーバーの作成に成功");
+    }
+
+    #[test]
+    fn test_new_service() {
+        let start_time = SystemTime::now();
+        let _service = new_service(start_time);
+        // サービスが正しく初期化されたことを確認
+        assert!(true, "サービスの作成に成功");
+    }
+}

@@ -24,9 +24,7 @@ COPY crates ./crates
 
 # メトリクスのProcessCollector部分を正しく修正
 RUN sed -i 's|/\*|// Process metrics disabled for Docker build|' crates/mcp-gateway/src/metrics.rs \
-    && sed -i '/^        #\[cfg(target_os = "linux")]/,/^\s*\*\//d' crates/mcp-gateway/src/metrics.rs \
-    && sed -i 's/use mcp_common::{McpError, grpc::IntoStatus, error::{ErrorResponse, ErrorDetail}};/use mcp_common::{McpError, IntoStatus, ErrorResponse, ErrorDetail};/g' crates/mcp-gateway/src/error.rs \
-    && sed -i 's/use mcp_common::{McpError, error::McpResult};/use mcp_common::{McpError, McpResult};/g' crates/mcp-gateway/src/service.rs
+    && sed -i '/^        #\[cfg(target_os = "linux")]/,/^\s*\*\//d' crates/mcp-gateway/src/metrics.rs
 
 # ビルド実行
 RUN cargo build --release

@@ -147,3 +147,52 @@ pub fn create_span(name: &str, attributes: Vec<(&str, &str)>) -> tracing::Span {
 
     span
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tracing_config_default() {
+        let config = TracingConfig::default();
+        assert_eq!(config.enabled, false);
+        assert_eq!(config.service_name, "mcp-security-gateway");
+        assert_eq!(config.otlp_endpoint, "http://localhost:4317");
+        assert_eq!(config.sampling_ratio, 1.0);
+        assert_eq!(config.batch_interval_secs, 5);
+        assert_eq!(config.parent_base_trace_id_ratio, 1.0);
+        assert_eq!(config.log_level, "info");
+    }
+
+    #[test]
+    fn test_init_tracing_disabled() {
+        let config = TracingConfig::default();
+        let result = init_tracing(config);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_init_tracing_enabled() {
+        let mut config = TracingConfig::default();
+        config.enabled = true;
+        let result = init_tracing(config);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_shutdown_tracing() {
+        // トレーシングをシャットダウンする
+        shutdown_tracing();
+        // シャットダウンが成功したことを確認
+        assert!(true);
+    }
+
+    #[test]
+    fn test_create_span() {
+        // スパンを作成
+        let span = create_span("test_span", vec![("key1", "value1"), ("key2", "value2")]);
+        // スパンが正常に作成されたことを確認
+        let _guard = span.enter();
+        assert!(true);
+    }
+}

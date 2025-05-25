@@ -5,10 +5,9 @@ use std::net::SocketAddr;
 use std::time::SystemTime;
 use tracing::info;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // トレース設定を環境変数から構築
-    let tracing_config = TracingConfig {
+/// 環境変数からトレーシング設定を構築する
+pub fn build_tracing_config() -> TracingConfig {
+    TracingConfig {
         enabled: std::env::var("OTEL_ENABLED")
             .unwrap_or_else(|_| "false".to_string())
             .parse()
@@ -30,7 +29,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .parse()
             .unwrap_or(1.0),
         log_level: std::env::var("RUST_LOG").unwrap_or_else(|_| "info".to_string()),
-    };
+    }
+}
+
+/// バインドアドレスを環境変数から取得
+pub fn get_bind_address() -> Result<SocketAddr, Box<dyn std::error::Error>> {
+    Ok(std::env::var("MCP_BIND_ADDRESS")
+        .unwrap_or_else(|_| "127.0.0.1:8081".to_string())
+        .parse::<SocketAddr>()?)
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // トレース設定を環境変数から構築
+    let tracing_config = build_tracing_config();
 
     // トレーシングシステムを初期化
     init_tracing(tracing_config)?;
@@ -44,9 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let service = new_service(start_time);
 
     // バインドするアドレス
-    let addr = std::env::var("MCP_BIND_ADDRESS")
-        .unwrap_or_else(|_| "127.0.0.1:8081".to_string())
-        .parse::<SocketAddr>()?;
+    let addr = get_bind_address()?;
 
     // gRPCサービスを作成
     let grpc_service = create_server(service);
@@ -59,4 +69,45 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     shutdown_tracing();
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::env;
+
+    #[test]
+    fn test_build_tracing_config() {
+        // デフォルト値のテスト
+        let config = build_tracing_config();
+        assert_eq!(config.enabled, false);
+        assert_eq!(config.service_name, "mcp-security-gateway");
+        
+        // 環境変数設定テスト
+        env::set_var("OTEL_ENABLED", "true");
+        env::set_var("OTEL_SERVICE_NAME", "test-service");
+        
+        let config = build_tracing_config();
+        assert_eq!(config.enabled, true);
+        assert_eq!(config.service_name, "test-service");
+        
+        // 環境変数をクリア
+        env::remove_var("OTEL_ENABLED");
+        env::remove_var("OTEL_SERVICE_NAME");
+    }
+
+    #[test]
+    fn test_get_bind_address() {
+        // デフォルト値のテスト
+        let addr = get_bind_address().unwrap();
+        assert_eq!(addr.to_string(), "127.0.0.1:8081");
+        
+        // 環境変数設定テスト
+        env::set_var("MCP_BIND_ADDRESS", "0.0.0.0:9000");
+        let addr = get_bind_address().unwrap();
+        assert_eq!(addr.to_string(), "0.0.0.0:9000");
+        
+        // 環境変数をクリア
+        env::remove_var("MCP_BIND_ADDRESS");
+    }
 }

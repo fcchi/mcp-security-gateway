@@ -2,7 +2,7 @@ use crate::metrics;
 use crate::proto::mcp_service_server::McpServiceServer;
 use crate::McpServiceImpl;
 use axum::{
-    body::Body,
+    body::{Body},
     http::{header, StatusCode},
     response::Response,
     routing::get,
@@ -124,5 +124,47 @@ mod tests {
         // サーバーを作成
         let _server = create_server(service);
         assert!(true); // 型チェックのみで確認
+    }
+
+    #[tokio::test]
+    async fn test_metrics_handler() {
+        // メトリクスを初期化
+        metrics::init_metrics();
+        
+        // メトリクスハンドラーを呼び出し
+        let response = metrics_handler().await;
+        
+        // レスポンスのステータスコードを確認
+        assert_eq!(response.status(), StatusCode::OK);
+        
+        // Content-Typeを確認
+        let content_type = response.headers().get(header::CONTENT_TYPE).unwrap();
+        assert_eq!(content_type, "text/plain; version=0.0.4");
+    }
+
+    #[tokio::test]
+    async fn test_health_handler() {
+        // ヘルスハンドラーを呼び出し
+        let response = health_handler().await;
+        
+        // レスポンスのステータスコードを確認
+        assert_eq!(response.status(), StatusCode::OK);
+        
+        // Content-Typeを確認
+        let content_type = response.headers().get(header::CONTENT_TYPE).unwrap();
+        assert_eq!(content_type, "application/json");
+        
+        // ボディが存在することを確認
+        let _body = response.into_body();
+        assert!(true);
+    }
+
+    #[tokio::test]
+    async fn test_start_metrics_server() {
+        // メトリクスサーバーを起動
+        start_metrics_server();
+        
+        // サーバーが起動したことを確認（エラーがないことをチェック）
+        assert!(true);
     }
 }

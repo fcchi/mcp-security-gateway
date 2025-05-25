@@ -3,9 +3,7 @@
 #![allow(clippy::result_large_err)]
 
 use dashmap::DashMap;
-use mcp_common::{
-    ErrorDetail, ErrorResponse, McpError, IntoStatus
-};
+use mcp_common::{grpc::IntoStatus, ErrorDetail, ErrorResponse, McpError};
 use once_cell::sync::Lazy;
 use serde_json::Value;
 use std::collections::HashMap;
